@@ -1,0 +1,49 @@
+# CI: PR および main へのプッシュ時に /check 相当（restore → build → test）を実行する
+#
+# src/tests は非SDK形式の .NET Framework 4.8 プロジェクト（packages.config）のため、
+# Linux上の dotnet CLI ではビルドできない。windows-latest ランナー上で
+# NuGet/setup-nuget（NuGet CLI restore, https://github.com/NuGet/setup-nuget）と
+# microsoft/setup-msbuild（MSBuild, https://github.com/microsoft/setup-msbuild）を使う。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: NuGet のセットアップ
+        uses: NuGet/setup-nuget@v3
+        with:
+          nuget-version: 'latest'
+
+      - name: MSBuild のセットアップ
+        uses: microsoft/setup-msbuild@v3
+
+      - name: 依存関係の復元（src）
+        run: nuget restore src\LocalRagApplication\LocalRagApplication.csproj
+
+      - name: 依存関係の復元（tests）
+        run: nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj
+
+      - name: ビルド（Release）
+        run: msbuild LocalRagApplication.slnx /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: vstest.console.exe のパス解決
+        id: vstest
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products * -property installationPath
+          $vstest = Join-Path $vsPath "Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
+          "path=$vstest" >> $env:GITHUB_OUTPUT
+
+      - name: テスト（MSTest / vstest.console.exe）
+        shell: pwsh
+        run: |
+          & "${{ steps.vstest.outputs.path }}" tests\LocalRagApplication.Tests\bin\Release\LocalRagApplication.Tests.dll

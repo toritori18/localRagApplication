@@ -1,0 +1,42 @@
+# .NET ビルド成果物（出典: `dotnet new gitignore`）
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+
+# NuGet packages.config 方式の復元先（classic ASP.NET MVC、コミット対象外）
+/packages/
+
+# 環境変数・ローカルシークレット（絶対にコミットしない）
+.env
+.env.local
+.env.*.local
+# シークレット管理の具体的な方式は未定（docs/development-setup.md 参照）。
+# 決定次第、該当ファイルのパターンをここに追加すること
+
+# SQLファイル（スキーマ・データは環境依存のためコミットしない。フォルダ自体は .gitkeep で保持）
+docs/sql/*
+!docs/sql/.gitkeep
+
+# アップロードされた元ファイル・埋め込みベクトルの索引（個人データのためコミットしない。フォルダ自体は .gitkeep で保持）
+data/*
+!data/.gitkeep
+
+# Claude Code 個人設定（チーム共有しない）
+.claude/settings.local.json
+
+# Claude Code フック・コマンドが生成する一時ファイル
+.claude/dev-server.log
+.claude/.stop-check-cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+.vscode/
+.idea/
+

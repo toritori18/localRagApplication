@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LocalRagApplication/LocalRagApplication.csproj" Id="282ef872-7b86-4fd1-b985-c30cc4c6281d" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LocalRagApplication.Tests/LocalRagApplication.Tests.csproj" Id="fb8fdc9b-be53-4614-a50a-6b82ba867a5e" />
+  </Folder>
+</Solution>
