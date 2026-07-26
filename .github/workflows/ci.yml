@@ -26,10 +26,10 @@ jobs:
         uses: microsoft/setup-msbuild@v3
 
       - name: 依存関係の復元（src）
-        run: nuget restore src\LocalRagApplication\LocalRagApplication.csproj
+        run: nuget restore src\LocalRagApplication\LocalRagApplication.csproj -SolutionDirectory .
 
       - name: 依存関係の復元（tests）
-        run: nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj
+        run: nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
 
       - name: ビルド（Release）
         run: msbuild LocalRagApplication.slnx /p:Configuration=Release /p:Platform="Any CPU"

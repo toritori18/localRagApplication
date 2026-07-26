@@ -25,12 +25,12 @@ if (-not (Get-Command nuget -ErrorAction SilentlyContinue)) {
     Write-Host "ERROR: nuget コマンドが見つかりません。NuGet CLI をインストールしてください: https://www.nuget.org/downloads" -ForegroundColor Red
     exit 1
 }
-nuget restore src\LocalRagApplication\LocalRagApplication.csproj
+nuget restore src\LocalRagApplication\LocalRagApplication.csproj -SolutionDirectory .
 if (-not $?) {
     Write-Host "ERROR: nuget restore に失敗しました（LocalRagApplication.csproj）。" -ForegroundColor Red
     exit 1
 }
-nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj
+nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
 if (-not $?) {
     Write-Host "ERROR: nuget restore に失敗しました（LocalRagApplication.Tests.csproj）。" -ForegroundColor Red
     exit 1
