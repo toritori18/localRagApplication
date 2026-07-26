@@ -4,7 +4,7 @@
 # Claude Code は出力を UTF-8 として読むため、stdout を UTF-8 に固定する（文字化け防止）
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-# git リポジトリでなければ何もしない（/setup 前の状態）
+# git リポジトリでなければ何もしない（/git:init 前の状態）
 if (-not (Test-Path ".git")) {
     exit 0
 }

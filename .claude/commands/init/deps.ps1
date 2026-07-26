@@ -1,6 +1,6 @@
-﻿# 依存関係の復元スクリプト（.NET Framework 4.8 / ASP.NET MVC 5、非SDK形式・packages.config 方式）
+# 初回セットアップスクリプト（.NET Framework 4.8 / ASP.NET MVC 5、非SDK形式・packages.config 方式）
 
-Write-Host "=== 依存関係の復元 ===" -ForegroundColor Cyan
+Write-Host "=== セットアップ ===" -ForegroundColor Cyan
 
 # [1/2] .NET Framework 4.8 のインストール状況を確認する
 # .NET Framework 4.5 以降のバージョンは、レジストリ HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full の
@@ -25,18 +25,18 @@ if (-not (Get-Command nuget -ErrorAction SilentlyContinue)) {
     Write-Host "ERROR: nuget コマンドが見つかりません。NuGet CLI をインストールしてください: https://www.nuget.org/downloads" -ForegroundColor Red
     exit 1
 }
-nuget restore src\LocalRagApplication\LocalRagApplication.csproj
+nuget restore src\LocalRagApplication\LocalRagApplication.csproj -SolutionDirectory .
 if (-not $?) {
     Write-Host "ERROR: nuget restore に失敗しました（LocalRagApplication.csproj）。" -ForegroundColor Red
     exit 1
 }
-nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj
+nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
 if (-not $?) {
     Write-Host "ERROR: nuget restore に失敗しました（LocalRagApplication.Tests.csproj）。" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "=== 復元完了 ===" -ForegroundColor Cyan
+Write-Host "=== セットアップ完了 ===" -ForegroundColor Cyan
 Write-Host "次のステップ:"
 Write-Host "  1. git リポジトリの初期化・hooks 登録: /git:init コマンドを実行してください"
 Write-Host "  2. シークレットの設定方法: docs/development-setup.md を参照してください"

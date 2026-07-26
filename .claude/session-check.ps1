@@ -26,7 +26,7 @@ if ((Test-Path "docs/csharp-contributing.md") -and (Select-String -Path "docs/cs
 
 # git リポジトリ チェック（未初期化だと Git 系コマンド・フックが動作しない）
 if (-not (Test-Path ".git")) {
-    $missing += "・git リポジトリが未初期化です。/setup を実行してください（git init と git hooks の登録が行われます）。"
+    $missing += "・git リポジトリが未初期化です。/git:init を実行してください（git init と git hooks の登録が行われます）。"
 }
 
 if ($missing.Count -gt 0) {

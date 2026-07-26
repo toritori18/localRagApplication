@@ -1,7 +1,7 @@
 以下のスクリプトを実行して初回セットアップを行ってください。
 
 ```powershell
-.\.claude\commands\setup.ps1
+.\.claude\commands\init\deps.ps1
 ```
 
 このスクリプトが実行する内容:

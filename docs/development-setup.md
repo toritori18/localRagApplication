@@ -25,7 +25,7 @@ push 前の機密情報チェック（`.claude/hooks/pre-push`）を有効にす
 git config core.hooksPath .claude/hooks
 ```
 
-> `.claude/commands/setup.ps1`（初回セットアップスクリプト、`/setup` コマンド）を実行した場合は自動で登録されます。
+> `.claude/commands/init/deps.ps1`（初回セットアップスクリプト、`/init:deps` コマンド）を実行した場合は自動で登録されます。
 
 ## シークレットの設定
 
