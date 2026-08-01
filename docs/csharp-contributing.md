@@ -45,7 +45,11 @@
 | `src/LocalRagApplication/Views/` | Razorビュー（`.cshtml`） |
 | `src/LocalRagApplication/App_Start/` | 起動時設定（Bundle/Filter/Route） |
 | `src/LocalRagApplication/Models/` | モデル |
-| `tests/LocalRagApplication.Tests/Controllers/` | MSTest テストクラス |
+| `src/LocalRagApplication/Services/` | アプリケーションサービス・リポジトリ（`TextExtraction/`・`Chunking/`・`Ollama/` に機能別のサブフォルダを作る） |
+| `src/LocalRagApplication/Infrastructure/` | 横断的な基盤コード（パス解決・設定読み取り・数値計算・ロギング等） |
+| `tests/LocalRagApplication.Tests/` | MSTest テストクラス（テスト対象の `src/` 側と同じフォルダ構成をミラーする） |
+| `tests/LocalRagApplication.Tests/TestDoubles/` | 手書きのフェイク実装（モックライブラリは未導入） |
+| `tests/LocalRagApplication.Tests/Fixtures/` | テスト用のサンプルファイル |
 | `docs/sql/` | SQLファイル（マイグレーション・初期データ等） |
 
 ### コメント

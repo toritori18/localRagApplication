@@ -18,18 +18,35 @@
 # 決定次第、該当ファイルのパターンをここに追加すること
 
 # SQLファイル（スキーマ・データは環境依存のためコミットしない。フォルダ自体は .gitkeep で保持）
+# ただしスキーマ定義（DDL）はコードと同期させる必要があるため追跡対象とする
 docs/sql/*
 !docs/sql/.gitkeep
+!docs/sql/*.sql
 
 # アップロードされた元ファイル・埋め込みベクトルの索引（個人データのためコミットしない。フォルダ自体は .gitkeep で保持）
+# `*` は `/` にマッチしないため `data/*` だけでは直下1階層しか除外できない。
+# サブフォルダは「フォルダを再包含 → 中身を再除外 → .gitkeep だけ再包含」の順で書く必要がある
 data/*
 !data/.gitkeep
+!data/sources/
+data/sources/*
+!data/sources/.gitkeep
+!data/extracted/
+data/extracted/*
+!data/extracted/.gitkeep
+!data/logs/
+data/logs/*
+!data/logs/.gitkeep
+
+# テスト実行時にAppPathsが使う一時データフォルダ（tests/LocalRagApplication.Tests/App.config の
+# RagDataRoot=TestData で指定。テストのたびに生成される使い捨てデータのため追跡しない）
+TestData/
 
 # Claude Code 個人設定（チーム共有しない）
 .claude/settings.local.json
 
 # Claude Code フック・コマンドが生成する一時ファイル
-.claude/dev-server.log
+.claude/dev-server*.log
 .claude/.stop-check-cache
 
 # OS

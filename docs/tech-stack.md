@@ -30,12 +30,24 @@
 | nomic-embed-text（Ollama上のモデル） | 文章のベクトル化（埋め込み）。コンテキスト長2,000トークン | [Ollama Library: nomic-embed-text](https://ollama.com/library/nomic-embed-text) |
 | llama3.1（Ollama上のモデル） | 回答生成 | [Ollama Library: llama3.1](https://ollama.com/library/llama3.1) |
 | phi3（Ollama上のモデル） | 回答生成（llama3.1の代替候補、Microsoft製の軽量モデル） | [Ollama Library: phi3](https://ollama.com/library/phi3) |
+| PdfPig 0.1.15 | PDFからのテキスト抽出 | [PdfPig (GitHub)](https://github.com/UglyToad/PdfPig)、`packages.config` の `PdfPig` バージョン指定 |
 
-ベクトルデータベースは未使用。ファイルを事前にチャンク分割して埋め込みベクトルを計算し、`data/index.json` に索引として保存する。質問時はこの索引を読み込み、コサイン類似度計算により関連チャンクを検索する（Ollama自体にはベクトル検索機能がないため、類似度計算は自前実装）。
+Ollamaとの連携は REST API を直接呼び出す形で実装している（`Services/Ollama/OllamaClient.cs`）。
+
+- `POST /api/embed`: テキスト群の埋め込みベクトルを取得する（出典: https://docs.ollama.com/capabilities/embeddings ）
+- `POST /api/generate`: プロンプトから回答テキストを生成する（出典: https://docs.ollama.com/api/generate ）
+
+ベクトルデータベースは未使用。ファイルを事前にチャンク分割して埋め込みベクトルを計算し、SQLite（`data/rag.db`）に索引として保存する。質問時はこの索引の全チャンクを読み込み、コサイン類似度計算（`Infrastructure/VectorMath.CosineSimilarity`）により関連チャンクを検索する（Ollama自体にはベクトル検索機能がないため、類似度計算は自前実装）。
+
+チャンク分割の既定値（`RagChunkSize=500` 文字・`RagChunkOverlap=100` 文字）および類似度検索で取得する上位チャンク数（`RagTopN=5`）は、いずれも一次資料に基づくものではない暫定値（出典なし）。`Web.config` の `appSettings` で調整可能。
 
 ## データベース
 
-JSONファイルでデータを保存する（RDBMS等は使用しない）。保存先は `data/` フォルダ（個人データのため `.gitignore` 対象、フォルダ自体は `.gitkeep` で保持）。索引データの詳細スキーマ（チャンク単位・メタデータの持ち方等）は未定・要検討。
+SQLite（`data/rag.db`）を使用する。ドキュメントメタデータ（`Documents`テーブル）・チャンク本文と埋め込みベクトル（`Chunks`テーブル）をすべてこのDBに保存する。スキーマ定義は [docs/sql/001_create_tables.sql](sql/001_create_tables.sql) を参照。ADO.NETプロバイダとして `System.Data.SQLite.Core` 1.0.119（`Stub.System.Data.SQLite.Core.NetFramework` 1.0.119 と併用）を使用する（出典: `packages.config` の該当パッケージバージョン指定）。
+
+保存先の `data/` フォルダは個人データのため `.gitignore` 対象（`data/rag.db` 本体は生成されるファイルであり、`sources/`・`extracted/`・`logs/` の各フォルダは `.gitkeep` で保持）。
+
+**既知の制約**: 類似度計算はSQLiteのネイティブ機能ではなく、アプリケーション側（`VectorMath.CosineSimilarity`）で全チャンクを対象に総当たりで計算している。ドキュメント数・チャンク数が増加すると質問1件あたりの計算量が線形に増えるため、将来的なスケーラビリティ上の既知の制約として認識しておくこと（インデックス構造を用いた近似最近傍探索等への置き換えは未検討）。
 
 ## インフラ / ホスティング
 
