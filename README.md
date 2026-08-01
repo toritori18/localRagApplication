@@ -4,8 +4,23 @@
 
 ## 機能
 
-- 自分の持っているファイル（PDF・Markdown・テキストなど）をアプリに読み込ませておける
-- ファイルの内容について質問すると、AIがファイルの中から関連する部分を検索し、それを元に回答する
+- ブラウザから `.pdf` / `.md` / `.txt` ファイルをアップロードして取り込める（`/Documents`）
+- 取り込んだファイルはチャンク分割・埋め込みベクトル化した上で SQLite（`data/rag.db`）に索引として保存される
+- 質問すると、索引から類似度の高いチャンクを検索し、それを文脈として Ollama が日本語で回答を生成する（`/Ask`）
+
+### 前提条件（Ollama）
+
+事前に [Ollama](https://ollama.com/) をインストールし、以下のモデルを取得しておくこと。
+
+```bash
+ollama pull nomic-embed-text
+ollama pull llama3.1
+```
+
+### 使い方
+
+1. `/Documents` を開き、ファイルをアップロードする（取り込み状況・エラーはこの画面に表示される）
+2. `/Ask` を開き、質問を入力する。回答と参照元チャンクが画面に表示される
 
 ## ディレクトリ構成
 
@@ -29,10 +44,28 @@ LocalRagApplication/
 │   └── LocalRagApplication/           # ASP.NET MVC 5（.NET Framework 4.8, packages.config）
 │       ├── App_Start/                 # 起動時設定（Bundle/Filter/Route）
 │       ├── Controllers/               # MVCコントローラー
+│       │   ├── HomeController.cs
+│       │   ├── DocumentsController.cs # ファイル取り込み（一覧・アップロード・削除）
+│       │   └── AskController.cs       # 質問応答
 │       ├── Views/                     # Razorビュー（.cshtml）
 │       │   ├── Home/
+│       │   ├── Documents/             # /Documents 画面
+│       │   ├── Ask/                   # /Ask 画面
 │       │   └── Shared/
-│       ├── Models/                    # モデル
+│       ├── Models/                    # モデル（DocumentMetadata, DocumentChunk, AnswerResult, SearchHit 等）
+│       ├── Services/                  # アプリケーションサービス
+│       │   ├── TextExtraction/        # PDF/テキストからのテキスト抽出（PdfTextExtractor, PlainTextExtractor）
+│       │   ├── Chunking/              # テキストのチャンク分割（FixedLengthTextChunker）
+│       │   ├── Ollama/                # Ollama REST APIクライアント（OllamaClient）
+│       │   ├── DocumentIngestionService.cs   # 取り込みパイプライン（抽出→分割→埋め込み→保存）
+│       │   ├── QueryService.cs        # 質問応答パイプライン（類似検索→回答生成）
+│       │   ├── SqliteDocumentRepository.cs
+│       │   └── SqliteVectorIndexRepository.cs
+│       ├── Infrastructure/            # 横断的な基盤コード
+│       │   ├── AppPaths.cs            # data/ 配下の各パス解決
+│       │   ├── RagSettings.cs         # Web.config設定値の読み取り
+│       │   ├── VectorMath.cs          # コサイン類似度計算
+│       │   ├── FileIngestionLogger.cs / IIngestionLogger.cs
 │       ├── Content/                   # CSS（Bootstrap同梱）
 │       ├── Scripts/                   # JS（jQuery, Bootstrap, Modernizr同梱）
 │       ├── Global.asax / Global.asax.cs
@@ -40,16 +73,25 @@ LocalRagApplication/
 │       └── packages.config            # NuGet依存関係（classicパッケージ管理）
 ├── tests/
 │   └── LocalRagApplication.Tests/     # MSTest テストプロジェクト（.NET Framework 4.8, packages.config）
-│       └── Controllers/
+│       ├── Controllers/               # コントローラーのテスト
+│       ├── Services/                  # サービス層のテスト（TextExtraction/ Chunking/ を含む）
+│       ├── Infrastructure/            # 基盤コードのテスト（VectorMath 等）
+│       ├── TestDoubles/               # 手書きのフェイク実装（FakeOllamaClient 等。モックライブラリ未導入のため）
+│       └── Fixtures/                  # テスト用サンプルファイル（sample.*・invalid_* は異常系検証用）
+├── sample-documents/                  # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 ├── packages/                          # NuGet復元先（packages.config方式、.gitignore対象）
 ├── data/                               # アップロードされた元ファイル・索引データ（.gitignore 対象、フォルダのみ保持）
-│   └── index.json                     # チャンク＋埋め込みベクトルの索引
+│   ├── sources/                       # アップロードされた元ファイルの保存先
+│   ├── extracted/                     # テキスト抽出後の中間ファイル（.txt）
+│   ├── logs/                          # 取り込み処理のログ
+│   └── rag.db                        # ドキュメントメタデータ・チャンク・埋め込みベクトルを保存するSQLiteデータベース
 ├── docs/                              # ドキュメント
 │   ├── git-rules.md                   # Git運用ルール
 │   ├── tech-stack.md                  # 技術スタック
 │   ├── development-setup.md           # 開発環境セットアップガイド
 │   ├── csharp-contributing.md         # コントリビュートガイド（C#）
 │   └── sql/                           # SQLファイル（マイグレーション・初期データ等）
+│       └── 001_create_tables.sql      # rag.db の初期スキーマ（Documents / Chunks テーブル）
 ```
 
 ## 技術スタック

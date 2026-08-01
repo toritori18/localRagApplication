@@ -1,0 +1,96 @@
+﻿@using LocalRagApplication.Models
+@model IEnumerable<DocumentMetadata>
+@{
+    ViewBag.Title = "ドキュメント管理";
+    var ingestResult = ViewBag.IngestResult as IngestResult;
+    var message = ViewBag.Message as string;
+}
+
+<h1>ドキュメント管理</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-warning">@message</div>
+}
+
+@if (ingestResult != null)
+{
+    <div class="alert alert-info">
+        <p class="mb-1">
+            取り込み結果: 追加 @ingestResult.AddedCount 件 / 更新 @ingestResult.UpdatedCount 件 / エラー @ingestResult.ErrorCount 件
+        </p>
+        @if (ingestResult.SkippedFileNames != null && ingestResult.SkippedFileNames.Count > 0)
+        {
+            <p class="mb-0">対応していない拡張子のためスキップしたファイル: @string.Join(", ", ingestResult.SkippedFileNames)</p>
+        }
+    </div>
+}
+
+<h2>ファイルのアップロード</h2>
+<p class="text-muted">対応形式: .pdf / .md / .txt（取り込みには数秒〜数十秒かかる場合があります）</p>
+<form id="uploadForm" action="@Url.Action("Upload")" method="post" enctype="multipart/form-data" class="mb-4">
+    @Html.AntiForgeryToken()
+    <div class="form-group mb-2">
+        <input type="file" name="files" multiple accept=".pdf,.md,.txt" class="form-control" />
+    </div>
+    <button id="uploadButton" type="submit" class="btn btn-primary">アップロード</button>
+</form>
+
+<h2>ドキュメント一覧</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ファイル名</th>
+            <th>種別</th>
+            <th>ステータス</th>
+            <th>チャンク数</th>
+            <th>サイズ</th>
+            <th>アップロード日時</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var document in Model)
+        {
+            <tr>
+                <td>@document.FileName</td>
+                <td>@document.FileType</td>
+                <td>
+                    @if (document.Status == DocumentStatus.Indexed)
+                    {
+                        <span class="badge bg-success">済み</span>
+                    }
+                    else if (document.Status == DocumentStatus.Error)
+                    {
+                        <span class="badge bg-danger">エラー</span>
+                        <div class="small text-danger">@document.ErrorMessage</div>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">非対応</span>
+                    }
+                </td>
+                <td>@document.ChunkCount</td>
+                <td>@Math.Round(document.FileSizeBytes / 1024.0, 1) KB</td>
+                <td>@document.UploadedAtUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                <td>
+                    <form action="@Url.Action("Delete")" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@document.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('このドキュメントを削除しますか？');">削除</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#uploadForm').on('submit', function () {
+                $('#uploadButton').prop('disabled', true).text('アップロード中...');
+            });
+        });
+    </script>
+}

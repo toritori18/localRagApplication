@@ -11,7 +11,7 @@
 
 ## 技術スタック
 
-主要言語は C#。AI実行環境は Ollama（ローカル・無料）で、文章のベクトル化には `nomic-embed-text`、回答生成には `llama3.1` または `phi3` を使用する。データ保存は JSON。詳細は [docs/tech-stack.md](docs/tech-stack.md) を参照してください。
+主要言語は C#。AI実行環境は Ollama（ローカル・無料）で、文章のベクトル化には `nomic-embed-text`、回答生成には `llama3.1` または `phi3` を使用する。データ保存は SQLite（`data/rag.db`）で、ドキュメントメタデータ・チャンク・埋め込みベクトルをすべて格納する。詳細は [docs/tech-stack.md](docs/tech-stack.md) を参照してください。
 
 ## Git運用ルール（要約）
 

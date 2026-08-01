@@ -1,33 +1,51 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+@{
+    ViewBag.Title = "ホーム";
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
+<h1>ローカルRAG検索</h1>
+<p class="lead">
+    手元の PDF・Markdown・テキストファイルをあらかじめ取り込んでおくと、その内容について AI に質問できます。
+    回答には根拠となったファイルの該当箇所（参照ソース）も一緒に表示されます。
+</p>
+<p>
+    すべての処理はローカルの Ollama 上で完結するため、アップロードしたファイルや質問内容が外部（インターネット上のサービス）に送信されることはありません。
+</p>
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+<div class="alert alert-warning" role="alert">
+    <h2 class="h5">前提条件: Ollama の準備</h2>
+    <p class="mb-1">このアプリを使う前に、<a href="https://ollama.com/" target="_blank" rel="noopener noreferrer">Ollama</a> をローカルで起動しておき、以下のモデルを取得しておく必要があります。</p>
+    <pre class="mb-1"><code>ollama pull nomic-embed-text
+ollama pull llama3.1</code></pre>
+    <p class="mb-0">Ollama が起動していない状態で質問すると、質問画面にエラーメッセージが表示されます。</p>
+</div>
+
+<h2>使い方</h2>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title h5">① ドキュメントを取り込む</h3>
+                <p class="card-text">
+                    「ドキュメント」画面から、質問の元になるファイルをアップロードします。
+                    アップロードされたファイルは自動でチャンク分割・ベクトル化され、検索用の索引として保存されます。
+                </p>
+                @Html.ActionLink("ドキュメント画面へ", "Index", "Documents", null, new { @class = "btn btn-primary" })
+            </div>
+        </div>
     </div>
-</main>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title h5">② 質問する</h3>
+                <p class="card-text">
+                    「質問」画面で、取り込んだファイルの内容について質問を入力します。
+                    関連する箇所が索引から検索され、それを根拠として AI が回答を生成します。
+                </p>
+                @Html.ActionLink("質問画面へ", "Index", "Ask", null, new { @class = "btn btn-primary" })
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>対応ファイル形式</h2>
+<p><code>.pdf</code> / <code>.md</code> / <code>.txt</code> に対応しています。</p>

@@ -1,0 +1,56 @@
+﻿@using LocalRagApplication.Models
+@model AnswerResult
+@{
+    ViewBag.Title = "質問";
+    var message = ViewBag.Message as string;
+}
+
+<h1>質問</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-warning">@message</div>
+}
+
+<form id="askForm" action="@Url.Action("Index")" method="post" class="mb-4">
+    @Html.AntiForgeryToken()
+    <div class="form-group mb-2">
+        <label for="question">質問内容</label>
+        <textarea id="question" name="question" rows="3" class="form-control" placeholder="取り込んだファイルの内容について質問を入力してください">@(Model != null ? Model.Question : null)</textarea>
+    </div>
+    <button id="askButton" type="submit" class="btn btn-primary">質問する</button>
+</form>
+
+@if (Model != null && !string.IsNullOrEmpty(Model.Answer))
+{
+    <h2>回答</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p style="white-space: pre-wrap;">@Model.Answer</p>
+        </div>
+    </div>
+
+    if (Model.Sources != null && Model.Sources.Count > 0)
+    {
+        <h2>参照ソース</h2>
+        <ul class="list-group mb-4">
+            @foreach (var source in Model.Sources)
+            {
+                <li class="list-group-item">
+                    <div><strong>@source.DocumentFileName</strong>（類似度スコア: @source.Score.ToString("F4")）</div>
+                    <div class="small text-muted" style="white-space: pre-wrap;">@source.Chunk.Text</div>
+                </li>
+            }
+        </ul>
+    }
+}
+
+@section scripts {
+    <script>
+        $(function () {
+            $('#askForm').on('submit', function () {
+                $('#askButton').prop('disabled', true).text('回答を生成中...');
+            });
+        });
+    </script>
+}
