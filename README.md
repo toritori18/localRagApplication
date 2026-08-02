@@ -22,6 +22,11 @@ ollama pull llama3.1
 1. `/Documents` を開き、ファイルをアップロードする（取り込み状況・エラーはこの画面に表示される）
 2. `/Ask` を開き、質問を入力する。回答が生成されると、質問・回答は会話履歴としてチャット形式で画面に残る（参照元チャンクの一覧は画面には表示されない）。同じセッション内であれば履歴は残り続け、「履歴をクリア」ボタンで削除できる
 
+## プロジェクト作成直後にやること
+
+1. `/init:deps` — 初回セットアップ（.NET Framework 4.8 Developer Pack確認 → nuget restore）
+2. `/git:init` — git リポジトリ初期化・hooks 登録（**必ず `/init:deps` の後に実行**）
+
 ## ディレクトリ構成
 
 ```
@@ -120,7 +125,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 
 | コマンド | 内容 | 実体 | 使うタイミング |
 |---|---|---|---|
-| `/setup` | 初回セットアップ（.NET Framework 4.8 Developer Pack確認 → nuget restore） | `setup.ps1` | プロジェクト作成直後に1回 |
+| `/init:deps` | 初回セットアップ（.NET Framework 4.8 Developer Pack確認 → nuget restore） | `init/deps.ps1` | プロジェクト作成直後に1回 |
 | `/server:start` | 開発サーバー（IIS Express）を起動する | `server/start.ps1` | 作業開始時 |
 | `/server:stop` | 開発サーバー（IIS Express）を停止する | `server/stop.ps1` | 作業終了時 |
 | `/lint` | スタイル検証（非SDK形式のため自動フォーマッタ未導入、要検討） | `lint.md` 参照 | コード変更後 |
@@ -136,7 +141,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 
 | コマンド | 内容 | 実体 | 使うタイミング |
 |---|---|---|---|
-| `/git:init` | git リポジトリを初期化し、git hooks（pre-push の機密情報チェック）を登録 | `git/init.ps1` | プロジェクト作成直後に1回（`/setup` の後） |
+| `/git:init` | git リポジトリを初期化し、git hooks（pre-push の機密情報チェック）を登録 | `git/init.ps1` | **プロジェクト作成直後に1回（`/init:deps` の後）** |
 | `/git:branch <名前>` | ブランチを作成してチェックアウト（`feature/…` `fix/…` `docs/…`） | `git/branch.ps1` | 作業開始時 |
 | `/git:diff` | 変更内容の差分を表示 | `git diff` | コミット前の確認 |
 | `/git:push "<メッセージ>"` | シークレット・main 直プッシュをチェックした上でコミット＆プッシュ | `git/push.ps1` | 作業の区切り |
@@ -154,7 +159,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 
 ```
 プロジェクト作成直後
-  → /setup                 初回セットアップ（.NET確認・nuget restore）
+  → /init:deps             初回セットアップ（.NET確認・nuget restore）
   → /git:init              git リポジトリ初期化・hooks 登録
 
 セッション開始
