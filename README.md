@@ -7,6 +7,11 @@
 - 自分の持っているファイル（PDF・Markdown・テキストなど）をアプリに読み込ませておける
 - ファイルの内容について質問すると、AIがファイルの中から関連する部分を検索し、それを元に回答する
 
+## プロジェクト作成直後にやること
+
+1. `/init:deps` — 初回セットアップ（.NET Framework 4.8 Developer Pack確認 → nuget restore）
+2. `/git:init` — git リポジトリ初期化・hooks 登録（**必ず `/init:deps` の後に実行**）
+
 ## ディレクトリ構成
 
 ```
@@ -93,7 +98,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 
 | コマンド | 内容 | 実体 | 使うタイミング |
 |---|---|---|---|
-| `/git:init` | git リポジトリを初期化し、git hooks（pre-push の機密情報チェック）を登録 | `git/init.ps1` | プロジェクト作成直後に1回（`/init:deps` の後） |
+| `/git:init` | git リポジトリを初期化し、git hooks（pre-push の機密情報チェック）を登録 | `git/init.ps1` | **プロジェクト作成直後に1回（`/init:deps` の後）** |
 | `/git:branch <名前>` | ブランチを作成してチェックアウト（`feature/…` `fix/…` `docs/…`） | `git/branch.ps1` | 作業開始時 |
 | `/git:status` | 変更ファイルの一覧を表示 | `git status` | 随時 |
 | `/git:diff` | 変更内容の差分を表示 | `git diff` | コミット前の確認 |
