@@ -56,7 +56,7 @@
     @Html.AntiForgeryToken()
     <div class="form-group mb-2">
         <label for="question">質問内容</label>
-        <textarea id="question" name="question" rows="3" class="form-control" placeholder="取り込んだファイルの内容について質問を入力してください">@(Model != null ? Model.Question : null)</textarea>
+        <textarea id="question" name="question" rows="3" class="form-control" style="max-width: 560px;" placeholder="質問を入力してください">@(Model != null ? Model.Question : null)</textarea>
     </div>
     <button id="askButton" type="submit" class="btn btn-primary">質問する</button>
 </form>
@@ -65,7 +65,7 @@
 {
     <form action="@Url.Action("Clear")" method="post" class="mb-4">
         @Html.AntiForgeryToken()
-        <button type="submit" class="btn btn-outline-secondary btn-sm" onclick="return confirm('会話履歴をクリアしますか？');">履歴をクリア</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm" data-confirm-message="会話履歴をクリアしますか？">履歴をクリア</button>
     </form>
 }
 

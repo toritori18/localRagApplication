@@ -57,3 +57,6 @@ Thumbs.db
 .vscode/
 .idea/
 
+# 個人用の学習・作業メモ（チーム共有しない）
+/notes/
+

@@ -79,7 +79,7 @@
                     <form action="@Url.Action("Delete")" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@document.Id" />
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('このドキュメントを削除しますか？');">削除</button>
+                        <button type="submit" class="btn btn-danger btn-sm" data-confirm-message="このドキュメントを削除しますか？">削除</button>
                     </form>
                 </td>
             </tr>

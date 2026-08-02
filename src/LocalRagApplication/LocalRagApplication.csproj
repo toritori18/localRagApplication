@@ -180,7 +180,9 @@
     </Compile>
     <Compile Include="Infrastructure\AppPaths.cs" />
     <Compile Include="Infrastructure\FileIngestionLogger.cs" />
+    <Compile Include="Infrastructure\FileQueryMetricsLogger.cs" />
     <Compile Include="Infrastructure\IIngestionLogger.cs" />
+    <Compile Include="Infrastructure\IQueryMetricsLogger.cs" />
     <Compile Include="Infrastructure\RagSettings.cs" />
     <Compile Include="Infrastructure\VectorMath.cs" />
     <Compile Include="Models\AnswerResult.cs" />
@@ -259,6 +261,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_BackToHome.cshtml" />
+    <Content Include="Views\Shared\_ConfirmModal.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />

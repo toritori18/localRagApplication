@@ -95,7 +95,8 @@ namespace LocalRagApplication.Tests.Services
 
             var embeddingByText = new Dictionary<string, float[]> { { "質問文", questionVector } };
             var ollamaClient = new FakeOllamaClient(text => embeddingByText[text], "フェイク回答");
-            var queryService = new QueryService(_vectorIndexRepository, _documentRepository, ollamaClient);
+            var queryService = new QueryService(
+                _vectorIndexRepository, _documentRepository, ollamaClient, new FakeQueryMetricsLogger());
 
             // Act
             var result = await queryService.AskAsync("質問文");
@@ -149,7 +150,8 @@ namespace LocalRagApplication.Tests.Services
 
             var embeddingByText = new Dictionary<string, float[]> { { "質問文", questionVector } };
             var ollamaClient = new FakeOllamaClient(text => embeddingByText[text], "フェイク回答");
-            var queryService = new QueryService(_vectorIndexRepository, _documentRepository, ollamaClient);
+            var queryService = new QueryService(
+                _vectorIndexRepository, _documentRepository, ollamaClient, new FakeQueryMetricsLogger());
 
             // Act
             var result = await queryService.AskAsync("質問文");
@@ -163,7 +165,8 @@ namespace LocalRagApplication.Tests.Services
         {
             // Arrange
             var ollamaClient = new FakeOllamaClient();
-            var queryService = new QueryService(_vectorIndexRepository, _documentRepository, ollamaClient);
+            var queryService = new QueryService(
+                _vectorIndexRepository, _documentRepository, ollamaClient, new FakeQueryMetricsLogger());
 
             // Act
             var result = await queryService.AskAsync("質問文");

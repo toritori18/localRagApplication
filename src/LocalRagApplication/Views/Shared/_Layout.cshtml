@@ -22,6 +22,9 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    @* _ConfirmModal.cshtml 内のスクリプトが jQuery と bootstrap.Modal に依存するため、
+       両バンドルの読み込みより後にレンダリングする必要がある *@
+    @Html.Partial("_ConfirmModal")
     @RenderSection("scripts", required: false)
 </body>
 </html>
