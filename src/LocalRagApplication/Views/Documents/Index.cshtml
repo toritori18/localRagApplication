@@ -6,6 +6,8 @@
     var message = ViewBag.Message as string;
 }
 
+@Html.Partial("_BackToHome")
+
 <h1>ドキュメント管理</h1>
 
 @if (!string.IsNullOrEmpty(message))
@@ -72,7 +74,7 @@
                 </td>
                 <td>@document.ChunkCount</td>
                 <td>@Math.Round(document.FileSizeBytes / 1024.0, 1) KB</td>
-                <td>@document.UploadedAtUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                <td>@document.UploadedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
                 <td>
                     <form action="@Url.Action("Delete")" method="post" class="d-inline">
                         @Html.AntiForgeryToken()

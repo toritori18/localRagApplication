@@ -10,13 +10,9 @@
 </head>
 <body>
     <div class="container body-content">
-        <nav class="py-2 mb-3 border-bottom small" aria-label="メインナビゲーション">
-            @Html.ActionLink("ホーム", "Index", "Home", new { area = "" }, null)
-            <span class="text-muted">|</span>
-            @Html.ActionLink("ドキュメント", "Index", "Documents", new { area = "" }, null)
-            <span class="text-muted">|</span>
-            @Html.ActionLink("質問", "Index", "Ask", new { area = "" }, null)
-        </nav>
+        <header class="py-2 mb-3 border-bottom">
+            <span class="h5 mb-0">@Html.ActionLink("ローカルRAG検索", "Index", "Home", new { area = "" }, null)</span>
+        </header>
         @RenderBody()
         <hr />
         <footer>

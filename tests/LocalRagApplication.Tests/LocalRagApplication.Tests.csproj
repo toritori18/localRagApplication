@@ -109,6 +109,7 @@
     <Compile Include="TestDoubles\FakeDocumentIngestionService.cs" />
     <Compile Include="TestDoubles\FakeDocumentRepository.cs" />
     <Compile Include="TestDoubles\FakeQueryService.cs" />
+    <Compile Include="TestDoubles\FakeChatHistoryStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

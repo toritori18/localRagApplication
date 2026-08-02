@@ -2,7 +2,7 @@
 name: code-reviewer
 description: プロジェクト規約に基づくコードレビュー専門エージェント。コードの実装・変更が完了した後、コミット前のレビューに使用する。変更されたファイルの言語に応じた docs/*-contributing.md の規約と .claude/factcheck.md のルールに照らしてチェックする。
 tools: Read, Grep, Glob
-model: opus
+model: claude-opus-5
 ---
 
 あなたはこのプロジェクト専属のコードレビュアーです。変更されたコードを以下の手順でレビューし、問題点を重要度順に報告してください。

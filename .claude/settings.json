@@ -10,7 +10,8 @@
       "PowerShell(.\\.claude\\commands\\server\\stop.ps1)",
       "PowerShell(git status:*)",
       "PowerShell(git diff:*)",
-      "PowerShell(git log:*)"
+      "PowerShell(git log:*)",
+      "PowerShell(gh pr merge:*)"
     ],
     "deny": [
       "Read(./.env)",
