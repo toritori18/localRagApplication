@@ -72,6 +72,7 @@ LocalRagApplication/
 │       │   ├── RagSettings.cs         # Web.config設定値の読み取り
 │       │   ├── VectorMath.cs          # コサイン類似度計算
 │       │   ├── FileIngestionLogger.cs / IIngestionLogger.cs
+│       │   ├── FileQueryMetricsLogger.cs / IQueryMetricsLogger.cs  # Ollama呼び出し・質問応答の処理時間内訳ログ
 │       ├── Content/                   # CSS（Bootstrap同梱）
 │       ├── Scripts/                   # JS（jQuery, Bootstrap, Modernizr同梱）
 │       ├── Global.asax / Global.asax.cs
@@ -84,18 +85,18 @@ LocalRagApplication/
 │       ├── Infrastructure/            # 基盤コードのテスト（VectorMath 等）
 │       ├── TestDoubles/               # 手書きのフェイク実装（FakeOllamaClient 等。モックライブラリ未導入のため）
 │       └── Fixtures/                  # テスト用サンプルファイル（sample.*・invalid_* は異常系検証用）
-├── sample-documents/                  # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 ├── packages/                          # NuGet復元先（packages.config方式、.gitignore対象）
 ├── data/                               # アップロードされた元ファイル・索引データ（.gitignore 対象、フォルダのみ保持）
 │   ├── sources/                       # アップロードされた元ファイルの保存先
 │   ├── extracted/                     # テキスト抽出後の中間ファイル（.txt）
-│   ├── logs/                          # 取り込み処理のログ
+│   ├── logs/                          # ログ（ingestion.log: 取り込み処理、query-metrics-yyyy-MM-dd.log: Ollama呼び出し・質問応答の処理時間内訳、保持日数は既定7日で自動削除）
 │   └── rag.db                        # ドキュメントメタデータ・チャンク・埋め込みベクトルを保存するSQLiteデータベース
 ├── docs/                              # ドキュメント
 │   ├── git-rules.md                   # Git運用ルール
 │   ├── tech-stack.md                  # 技術スタック
 │   ├── development-setup.md           # 開発環境セットアップガイド
 │   ├── csharp-contributing.md         # コントリビュートガイド（C#）
+│   ├── sample-documents/              # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 │   └── sql/                           # SQLファイル（マイグレーション・初期データ等）
 │       └── 001_create_tables.sql      # rag.db の初期スキーマ（Documents / Chunks テーブル）
 ```

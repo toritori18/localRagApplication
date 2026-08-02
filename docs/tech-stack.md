@@ -37,9 +37,13 @@ Ollamaとの連携は REST API を直接呼び出す形で実装している（`
 - `POST /api/embed`: テキスト群の埋め込みベクトルを取得する（出典: https://docs.ollama.com/capabilities/embeddings ）
 - `POST /api/generate`: プロンプトから回答テキストを生成する（出典: https://docs.ollama.com/api/generate ）
 
+両APIのリクエストには `keep_alive`（モデルをメモリ上に保持する時間）を付与している。Ollama側の既定値は `5m`（出典: https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md ）だが、`RagSettings.OllamaKeepAlive`（`Web.config` の `OllamaKeepAlive`、既定 **30m**）で作業セッション中モデルを保持し続けるよう延長している。30mという値自体は一次資料に基づくものではない暫定値（出典なし）。モデルロード時間の削減（実測9.7秒）に加え、モデルが常駐している間はプロンプトキャッシュも保持されるため2問目以降の `prompt_eval` が大幅に短縮される（実測 41,060ms → 510ms）ことを確認済み。ただし `llama3.1` は約5.6GB常駐するため、保持時間を延ばすほどメモリ使用量とのトレードオフになる点に注意（出典なし）。
+
 ベクトルデータベースは未使用。ファイルを事前にチャンク分割して埋め込みベクトルを計算し、SQLite（`data/rag.db`）に索引として保存する。質問時はこの索引の全チャンクを読み込み、コサイン類似度計算（`Infrastructure/VectorMath.CosineSimilarity`）により関連チャンクを検索する（Ollama自体にはベクトル検索機能がないため、類似度計算は自前実装）。
 
 チャンク分割の既定値（`RagChunkSize=500` 文字・`RagChunkOverlap=100` 文字）および類似度検索で取得する上位チャンク数（`RagTopN=5`）は、いずれも一次資料に基づくものではない暫定値（出典なし）。`Web.config` の `appSettings` で調整可能。
+
+`/api/embed` と `/api/generate` のレスポンスにはナノ秒単位の処理時間内訳（`total_duration` 等）が含まれる（出典: [Ollama API ドキュメント](https://github.com/ollama/ollama/blob/main/docs/api.md) に "All durations are returned in nanoseconds." と明記。フィールドごとの説明は [docs.ollama.com/api/generate](https://docs.ollama.com/api/generate) にも記載）。`OllamaClient` はこれをミリ秒換算した上で、アプリ側で計測したHTTP往復時間・`QueryService` の索引読み込み/類似度計算時間と併せて `data/logs/query-metrics-yyyy-MM-dd.log` に出力する。保持日数は `RagMetricsLogRetentionDays`（既定 **7日**、出典なし・暫定値）で、`Web.config` の `appSettings` で調整可能。これより古い日付のログファイルはプロセス内で1日1回自動削除される。
 
 ## データベース
 

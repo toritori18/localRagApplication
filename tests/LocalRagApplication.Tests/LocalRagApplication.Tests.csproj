@@ -97,6 +97,7 @@
     <Compile Include="Controllers\HomeControllerTest.cs" />
     <Compile Include="Controllers\DocumentsControllerTest.cs" />
     <Compile Include="Controllers\AskControllerTest.cs" />
+    <Compile Include="Infrastructure\FileQueryMetricsLoggerTest.cs" />
     <Compile Include="Infrastructure\VectorMathTest.cs" />
     <Compile Include="Services\TextExtraction\PlainTextExtractorTest.cs" />
     <Compile Include="Services\TextExtraction\PdfTextExtractorTest.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="TestDoubles\FakeOllamaClient.cs" />
     <Compile Include="TestDoubles\FakeHttpPostedFile.cs" />
     <Compile Include="TestDoubles\FakeIngestionLogger.cs" />
+    <Compile Include="TestDoubles\FakeQueryMetricsLogger.cs" />
     <Compile Include="TestDoubles\FakeDocumentIngestionService.cs" />
     <Compile Include="TestDoubles\FakeDocumentRepository.cs" />
     <Compile Include="TestDoubles\FakeQueryService.cs" />

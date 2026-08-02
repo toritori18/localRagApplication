@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,12 +22,17 @@ namespace LocalRagApplication.Services
         private readonly IVectorIndexRepository _vectorIndexRepository;
         private readonly IDocumentRepository _documentRepository;
         private readonly IOllamaClient _ollamaClient;
+        private readonly IQueryMetricsLogger _metricsLogger;
 
         /// <summary>
-        /// 既定の実装（SQLiteリポジトリ・<see cref="OllamaClient"/>）を組み立てて初期化する。
+        /// 既定の実装（SQLiteリポジトリ・<see cref="OllamaClient"/>・<see cref="FileQueryMetricsLogger"/>）を組み立てて初期化する。
         /// </summary>
         public QueryService()
-            : this(new SqliteVectorIndexRepository(), new SqliteDocumentRepository(), new OllamaClient())
+            : this(
+                new SqliteVectorIndexRepository(),
+                new SqliteDocumentRepository(),
+                new OllamaClient(),
+                new FileQueryMetricsLogger())
         {
         }
 
@@ -35,11 +42,13 @@ namespace LocalRagApplication.Services
         /// <param name="vectorIndexRepository">チャンク・埋め込みベクトルのリポジトリ。</param>
         /// <param name="documentRepository">ドキュメントメタデータのリポジトリ。</param>
         /// <param name="ollamaClient">Ollamaクライアント。</param>
+        /// <param name="metricsLogger">処理時間内訳の記録先。</param>
         /// <exception cref="ArgumentNullException">いずれかの引数が null の場合。</exception>
         public QueryService(
             IVectorIndexRepository vectorIndexRepository,
             IDocumentRepository documentRepository,
-            IOllamaClient ollamaClient)
+            IOllamaClient ollamaClient,
+            IQueryMetricsLogger metricsLogger)
         {
             if (vectorIndexRepository == null)
             {
@@ -56,9 +65,15 @@ namespace LocalRagApplication.Services
                 throw new ArgumentNullException(nameof(ollamaClient));
             }
 
+            if (metricsLogger == null)
+            {
+                throw new ArgumentNullException(nameof(metricsLogger));
+            }
+
             _vectorIndexRepository = vectorIndexRepository;
             _documentRepository = documentRepository;
             _ollamaClient = ollamaClient;
+            _metricsLogger = metricsLogger;
         }
 
         /// <inheritdoc />
@@ -69,10 +84,16 @@ namespace LocalRagApplication.Services
                 throw new ArgumentNullException(nameof(question));
             }
 
+            var totalStopwatch = Stopwatch.StartNew();
+
+            var indexLoadStopwatch = Stopwatch.StartNew();
             var allChunks = await _vectorIndexRepository.GetAllAsync().ConfigureAwait(false);
+            indexLoadStopwatch.Stop();
+
             if (allChunks.Count == 0)
             {
                 // 索引が空の場合は、無駄なOllama通信を避けるためEmbedAsync/GenerateAsyncを一切呼び出さない。
+                // この設計意図に合わせ、Ollamaを呼び出さないこのパスでは内訳ログも出力しない。
                 return new AnswerResult
                 {
                     Question = question,
@@ -84,6 +105,7 @@ namespace LocalRagApplication.Services
             var questionEmbeddings = await _ollamaClient.EmbedAsync(new[] { question }).ConfigureAwait(false);
             var questionEmbedding = questionEmbeddings[0];
 
+            var similarityStopwatch = Stopwatch.StartNew();
             var topChunks = allChunks
                 .Select(chunk => new
                 {
@@ -93,6 +115,7 @@ namespace LocalRagApplication.Services
                 .OrderByDescending(x => x.Score)
                 .Take(RagSettings.RagTopN)
                 .ToList();
+            similarityStopwatch.Stop();
 
             var fileNameById = await GetFileNameByDocumentIdAsync().ConfigureAwait(false);
 
@@ -110,12 +133,43 @@ namespace LocalRagApplication.Services
             var prompt = BuildPrompt(question, sources);
             var answer = await _ollamaClient.GenerateAsync(prompt).ConfigureAwait(false);
 
+            totalStopwatch.Stop();
+            LogAskMetrics(allChunks, indexLoadStopwatch.ElapsedMilliseconds, similarityStopwatch.ElapsedMilliseconds, totalStopwatch.ElapsedMilliseconds);
+
             return new AnswerResult
             {
                 Question = question,
                 Answer = answer,
                 Sources = sources
             };
+        }
+
+        /// <summary>
+        /// <see cref="AskAsync"/> 各段階の処理時間内訳をログに出力する。<c>op=ask</c> を付与し、
+        /// チャンク数・次元数も併せて記録することで、総当たりコサイン類似度計算がボトルネックかどうかを
+        /// 後から実測ベースで判断できるようにする。
+        /// </summary>
+        /// <param name="allChunks">索引から読み込んだ全チャンク。</param>
+        /// <param name="indexLoadMilliseconds">索引読み込み（<see cref="IVectorIndexRepository.GetAllAsync"/>）にかかった時間（ミリ秒）。</param>
+        /// <param name="similarityMilliseconds">コサイン類似度計算・ソートにかかった時間（ミリ秒）。</param>
+        /// <param name="totalMilliseconds"><see cref="AskAsync"/> 全体にかかった時間（ミリ秒）。</param>
+        private void LogAskMetrics(
+            IReadOnlyList<DocumentChunk> allChunks, long indexLoadMilliseconds, long similarityMilliseconds, long totalMilliseconds)
+        {
+            // allChunks.Count == 0 の場合は AskAsync が早期returnしこのメソッドを呼び出さないため、
+            // allChunks[0] への参照は安全だが、Embedding が万一 null の場合に備えて防御しておく。
+            var dims = allChunks[0].Embedding != null ? allChunks[0].Embedding.Length : 0;
+
+            var message = string.Format(
+                CultureInfo.InvariantCulture,
+                "op=ask chunks={0} dims={1} index_load={2}ms similarity={3}ms total={4}ms",
+                allChunks.Count,
+                dims,
+                indexLoadMilliseconds,
+                similarityMilliseconds,
+                totalMilliseconds);
+
+            _metricsLogger.LogMetrics(message);
         }
 
         /// <summary>

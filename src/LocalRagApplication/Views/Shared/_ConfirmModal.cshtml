@@ -1,0 +1,49 @@
+@* サイト全体で使い回す確認モーダルの部分ビュー。ネイティブの confirm() はホスト環境（Electron/ブラウザ）
+   独自のタイトルが表示されてしまうため、その代替として Bootstrap 5 のモーダルでタイトルを固定文字列「確認」に統一する。
+   利用側は確認したい form 内のボタンに data-confirm-message 属性を付与するだけでよい。 *@
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">確認</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="confirmModalOkButton">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var confirmModalElement = document.getElementById('confirmModal');
+        var confirmModal = new bootstrap.Modal(confirmModalElement);
+        var pendingForm = null;
+
+        // data-confirm-message を持つ要素は動的に増える（Documents/Index.cshtml では行ごとに繰り返される）ため、
+        // 個別の要素にハンドラを付けず document への委譲で拾う
+        $(document).on('click', '[data-confirm-message]', function (event) {
+            event.preventDefault();
+            pendingForm = $(this).closest('form').get(0);
+            $('#confirmModalMessage').text($(this).data('confirm-message'));
+            confirmModal.show();
+        });
+
+        $('#confirmModalOkButton').on('click', function () {
+            confirmModal.hide();
+            if (pendingForm) {
+                // jQuery の .trigger('submit') ではなく、DOM ネイティブの form.submit() を使う。
+                // trigger('submit') は submit イベントを発火させてしまい、フォームに付いている
+                // 他の送信時ハンドラと干渉する可能性があるが、ネイティブの submit() は
+                // submit イベントを発火しないため、そうした干渉やハンドラの誤爆が起きない。
+                pendingForm.submit();
+                pendingForm = null;
+            }
+        });
+    });
+</script>

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -19,11 +21,39 @@ namespace LocalRagApplication.Services.Ollama
         // 一次資料に基づく値ではない（プランの「例: 16件」という記載に沿った暫定値）。
         private const int EmbedBatchSize = 16;
 
+        // Ollama公式APIドキュメントに "All durations are returned in nanoseconds." と明記されている。
+        // ログにはミリ秒換算で出力するための除数。
+        private const long NanosecondsPerMillisecond = 1000000;
+
         // ソケット枯渇を避けるため、HttpClientはアプリケーション全体で1インスタンスを共有する。
         private static readonly HttpClient HttpClientInstance = new HttpClient
         {
             Timeout = TimeSpan.FromMinutes(5)
         };
+
+        private readonly IQueryMetricsLogger _metricsLogger;
+
+        /// <summary>
+        /// 既定の内訳ログ出力先（<see cref="FileQueryMetricsLogger"/>）を使って初期化する。
+        /// </summary>
+        public OllamaClient() : this(new FileQueryMetricsLogger())
+        {
+        }
+
+        /// <summary>
+        /// 内訳ログの記録先を注入して初期化する（テスト等でフェイク実装を使う場合を想定）。
+        /// </summary>
+        /// <param name="metricsLogger">処理時間内訳の記録先。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="metricsLogger"/> が null の場合。</exception>
+        public OllamaClient(IQueryMetricsLogger metricsLogger)
+        {
+            if (metricsLogger == null)
+            {
+                throw new ArgumentNullException(nameof(metricsLogger));
+            }
+
+            _metricsLogger = metricsLogger;
+        }
 
         /// <summary>
         /// 複数のテキストをまとめて埋め込みベクトル化する。1回のリクエストが大きくなりすぎないよう、
@@ -70,12 +100,17 @@ namespace LocalRagApplication.Services.Ollama
             {
                 Model = RagSettings.OllamaGenerationModel,
                 Prompt = prompt,
-                Stream = false
+                Stream = false,
+                KeepAlive = RagSettings.OllamaKeepAlive
             };
 
             var url = BuildUrl("/api/generate");
+            var stopwatch = Stopwatch.StartNew();
             var responseBody = await PostJsonAsync(url, JsonConvert.SerializeObject(request)).ConfigureAwait(false);
+            stopwatch.Stop();
+
             var generateResponse = JsonConvert.DeserializeObject<GenerateResponse>(responseBody);
+            LogGenerateMetrics(generateResponse, stopwatch.ElapsedMilliseconds);
             return generateResponse.Response;
         }
 
@@ -90,12 +125,17 @@ namespace LocalRagApplication.Services.Ollama
             var request = new EmbedRequest
             {
                 Model = RagSettings.OllamaEmbeddingModel,
-                Input = texts.ToArray()
+                Input = texts.ToArray(),
+                KeepAlive = RagSettings.OllamaKeepAlive
             };
 
             var url = BuildUrl("/api/embed");
+            var stopwatch = Stopwatch.StartNew();
             var responseBody = await PostJsonAsync(url, JsonConvert.SerializeObject(request)).ConfigureAwait(false);
+            stopwatch.Stop();
+
             var embedResponse = JsonConvert.DeserializeObject<EmbedResponse>(responseBody);
+            LogEmbedMetrics(embedResponse, texts.Count, stopwatch.ElapsedMilliseconds);
             return embedResponse.Embeddings;
         }
 
@@ -145,6 +185,64 @@ namespace LocalRagApplication.Services.Ollama
         }
 
         /// <summary>
+        /// <c>/api/embed</c> の処理時間内訳をログに出力する。取り込み処理（<c>DocumentIngestionService</c>）からも
+        /// 呼び出されるため、同じログファイルに出力される他の行と区別できるよう <c>op=embed</c> を付与する。
+        /// </summary>
+        /// <param name="response">デシリアライズ済みのレスポンス。</param>
+        /// <param name="textCount">今回のリクエストで送信したテキスト件数。</param>
+        /// <param name="wallMilliseconds">HTTP往復にかかった実測時間（ミリ秒）。</param>
+        private void LogEmbedMetrics(EmbedResponse response, int textCount, long wallMilliseconds)
+        {
+            var message = string.Format(
+                CultureInfo.InvariantCulture,
+                "op=embed model={0} texts={1} wall={2}ms total={3}ms load={4}ms prompt_eval={5}tok",
+                RagSettings.OllamaEmbeddingModel,
+                textCount,
+                wallMilliseconds,
+                response.TotalDuration / NanosecondsPerMillisecond,
+                response.LoadDuration / NanosecondsPerMillisecond,
+                response.PromptEvalCount);
+
+            _metricsLogger.LogMetrics(message);
+        }
+
+        /// <summary>
+        /// <c>/api/generate</c> の処理時間内訳をログに出力する。<c>op=generate</c> を付与し、
+        /// <c>eval_count / eval_duration</c> から生成スループット（tok/s）も併せて記録する。
+        /// </summary>
+        /// <param name="response">デシリアライズ済みのレスポンス。</param>
+        /// <param name="wallMilliseconds">HTTP往復にかかった実測時間（ミリ秒）。</param>
+        private void LogGenerateMetrics(GenerateResponse response, long wallMilliseconds)
+        {
+            var promptEvalMilliseconds = response.PromptEvalDuration / NanosecondsPerMillisecond;
+            var evalMilliseconds = response.EvalDuration / NanosecondsPerMillisecond;
+
+            // 古いOllamaやフィールド欠損時は eval_duration が 0 のままデシリアライズされるため、
+            // ゼロ除算を避けるためにガードする。
+            var throughput = 0d;
+            if (response.EvalDuration > 0)
+            {
+                var evalDurationSeconds = response.EvalDuration / (double)(NanosecondsPerMillisecond * 1000);
+                throughput = response.EvalCount / evalDurationSeconds;
+            }
+
+            var message = string.Format(
+                CultureInfo.InvariantCulture,
+                "op=generate model={0} wall={1}ms total={2}ms load={3}ms prompt_eval={4}ms/{5}tok eval={6}ms/{7}tok throughput={8}tok/s",
+                RagSettings.OllamaGenerationModel,
+                wallMilliseconds,
+                response.TotalDuration / NanosecondsPerMillisecond,
+                response.LoadDuration / NanosecondsPerMillisecond,
+                promptEvalMilliseconds,
+                response.PromptEvalCount,
+                evalMilliseconds,
+                response.EvalCount,
+                throughput.ToString("F1", CultureInfo.InvariantCulture));
+
+            _metricsLogger.LogMetrics(message);
+        }
+
+        /// <summary>
         /// <c>/api/embed</c> のリクエストボディ。
         /// </summary>
         private class EmbedRequest
@@ -154,6 +252,9 @@ namespace LocalRagApplication.Services.Ollama
 
             [JsonProperty("input")]
             public string[] Input { get; set; }
+
+            [JsonProperty("keep_alive")]
+            public string KeepAlive { get; set; }
         }
 
         /// <summary>
@@ -163,6 +264,15 @@ namespace LocalRagApplication.Services.Ollama
         {
             [JsonProperty("embeddings")]
             public float[][] Embeddings { get; set; }
+
+            [JsonProperty("total_duration")]
+            public long TotalDuration { get; set; }
+
+            [JsonProperty("load_duration")]
+            public long LoadDuration { get; set; }
+
+            [JsonProperty("prompt_eval_count")]
+            public int PromptEvalCount { get; set; }
         }
 
         /// <summary>
@@ -178,6 +288,9 @@ namespace LocalRagApplication.Services.Ollama
 
             [JsonProperty("stream")]
             public bool Stream { get; set; }
+
+            [JsonProperty("keep_alive")]
+            public string KeepAlive { get; set; }
         }
 
         /// <summary>
@@ -187,6 +300,24 @@ namespace LocalRagApplication.Services.Ollama
         {
             [JsonProperty("response")]
             public string Response { get; set; }
+
+            [JsonProperty("total_duration")]
+            public long TotalDuration { get; set; }
+
+            [JsonProperty("load_duration")]
+            public long LoadDuration { get; set; }
+
+            [JsonProperty("prompt_eval_count")]
+            public int PromptEvalCount { get; set; }
+
+            [JsonProperty("prompt_eval_duration")]
+            public long PromptEvalDuration { get; set; }
+
+            [JsonProperty("eval_count")]
+            public int EvalCount { get; set; }
+
+            [JsonProperty("eval_duration")]
+            public long EvalDuration { get; set; }
         }
     }
 }
