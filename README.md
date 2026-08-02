@@ -20,7 +20,7 @@ ollama pull llama3.1
 ### 使い方
 
 1. `/Documents` を開き、ファイルをアップロードする（取り込み状況・エラーはこの画面に表示される）
-2. `/Ask` を開き、質問を入力する。回答と参照元チャンクが画面に表示される
+2. `/Ask` を開き、質問を入力する。回答が生成されると、質問・回答は会話履歴としてチャット形式で画面に残る（参照元チャンクの一覧は画面には表示されない）。同じセッション内であれば履歴は残り続け、「履歴をクリア」ボタンで削除できる
 
 ## ディレクトリ構成
 
@@ -50,15 +50,16 @@ LocalRagApplication/
 │       ├── Views/                     # Razorビュー（.cshtml）
 │       │   ├── Home/
 │       │   ├── Documents/             # /Documents 画面
-│       │   ├── Ask/                   # /Ask 画面
-│       │   └── Shared/
-│       ├── Models/                    # モデル（DocumentMetadata, DocumentChunk, AnswerResult, SearchHit 等）
+│       │   ├── Ask/                   # /Ask 画面（会話履歴をチャット形式で表示）
+│       │   └── Shared/                # _Layout.cshtml, _BackToHome.cshtml（各画面共通の「戻る」ボタン部分ビュー）等
+│       ├── Models/                    # モデル（DocumentMetadata, DocumentChunk, AnswerResult, SearchHit, ChatTurn, AskViewModel 等）
 │       ├── Services/                  # アプリケーションサービス
 │       │   ├── TextExtraction/        # PDF/テキストからのテキスト抽出（PdfTextExtractor, PlainTextExtractor）
 │       │   ├── Chunking/              # テキストのチャンク分割（FixedLengthTextChunker）
 │       │   ├── Ollama/                # Ollama REST APIクライアント（OllamaClient）
 │       │   ├── DocumentIngestionService.cs   # 取り込みパイプライン（抽出→分割→埋め込み→保存）
 │       │   ├── QueryService.cs        # 質問応答パイプライン（類似検索→回答生成）
+│       │   ├── IChatHistoryStore.cs / SessionChatHistoryStore.cs  # /Ask 画面の会話履歴（セッション保持）の抽象化と実装
 │       │   ├── SqliteDocumentRepository.cs
 │       │   └── SqliteVectorIndexRepository.cs
 │       ├── Infrastructure/            # 横断的な基盤コード

@@ -1,9 +1,12 @@
-﻿@using LocalRagApplication.Models
-@model AnswerResult
+@model LocalRagApplication.Models.AskViewModel
 @{
     ViewBag.Title = "質問";
     var message = ViewBag.Message as string;
+    var history = Model != null ? Model.History : null;
+    var hasHistory = history != null && history.Count > 0;
 }
+
+@Html.Partial("_BackToHome")
 
 <h1>質問</h1>
 
@@ -12,7 +15,44 @@
     <div class="alert alert-warning">@message</div>
 }
 
-<form id="askForm" action="@Url.Action("Index")" method="post" class="mb-4">
+<div class="mb-4">
+    @if (hasHistory)
+    {
+        foreach (var turn in history)
+        {
+            <div class="mb-3">
+                <div class="d-flex justify-content-end mb-2">
+                    <div class="card text-bg-primary" style="max-width: 75%;">
+                        <div class="card-body py-2 px-3">
+                            <div class="small">
+                                <strong>あなた</strong>
+                                <span class="opacity-75">@turn.AskedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                            </div>
+                            <div style="white-space: pre-wrap;">@turn.Question</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-start mb-2">
+                    <div class="card bg-light" style="max-width: 75%;">
+                        <div class="card-body py-2 px-3">
+                            <div class="small text-muted">
+                                <strong>AI</strong>
+                                @turn.AskedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                            </div>
+                            <div style="white-space: pre-wrap;">@turn.Answer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">まだ質問がありません。</p>
+    }
+</div>
+
+<form id="askForm" action="@Url.Action("Index")" method="post" class="mb-2">
     @Html.AntiForgeryToken()
     <div class="form-group mb-2">
         <label for="question">質問内容</label>
@@ -21,28 +61,12 @@
     <button id="askButton" type="submit" class="btn btn-primary">質問する</button>
 </form>
 
-@if (Model != null && !string.IsNullOrEmpty(Model.Answer))
+@if (hasHistory)
 {
-    <h2>回答</h2>
-    <div class="card mb-4">
-        <div class="card-body">
-            <p style="white-space: pre-wrap;">@Model.Answer</p>
-        </div>
-    </div>
-
-    if (Model.Sources != null && Model.Sources.Count > 0)
-    {
-        <h2>参照ソース</h2>
-        <ul class="list-group mb-4">
-            @foreach (var source in Model.Sources)
-            {
-                <li class="list-group-item">
-                    <div><strong>@source.DocumentFileName</strong>（類似度スコア: @source.Score.ToString("F4")）</div>
-                    <div class="small text-muted" style="white-space: pre-wrap;">@source.Chunk.Text</div>
-                </li>
-            }
-        </ul>
-    }
+    <form action="@Url.Action("Clear")" method="post" class="mb-4">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-secondary btn-sm" onclick="return confirm('会話履歴をクリアしますか？');">履歴をクリア</button>
+    </form>
 }
 
 @section scripts {
