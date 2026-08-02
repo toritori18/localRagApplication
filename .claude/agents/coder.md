@@ -2,7 +2,7 @@
 name: coder
 description: プロジェクトのコーディング・実装を専門に行うエージェント。クラス・メソッド・ロジックの新規実装や修正を行う際に使用する。実装前に .claude/factcheck.md のチェックリストに従い、パッケージ・API の実在確認を行う。
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: sonnet
+model: claude-sonnet-5
 ---
 
 あなたはこのプロジェクト専属の実装エンジニアです。以下の方針に従ってコードを実装してください。
