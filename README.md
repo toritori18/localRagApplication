@@ -138,9 +138,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 |---|---|---|---|
 | `/git:init` | git リポジトリを初期化し、git hooks（pre-push の機密情報チェック）を登録 | `git/init.ps1` | プロジェクト作成直後に1回（`/setup` の後） |
 | `/git:branch <名前>` | ブランチを作成してチェックアウト（`feature/…` `fix/…` `docs/…`） | `git/branch.ps1` | 作業開始時 |
-| `/git:status` | 変更ファイルの一覧を表示 | `git status` | 随時 |
 | `/git:diff` | 変更内容の差分を表示 | `git diff` | コミット前の確認 |
-| `/git:log` | コミット履歴を1行ずつ表示 | `git log --oneline` | 随時 |
 | `/git:push "<メッセージ>"` | シークレット・main 直プッシュをチェックした上でコミット＆プッシュ | `git/push.ps1` | 作業の区切り |
 | `/git:pr` | 現在のブランチから main への PR を作成 | `gh pr create` | プッシュ後 |
 
@@ -162,7 +160,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 セッション開始
   → /git:branch feature/<名前>   作業ブランチ作成
   → /server:start          開発サーバー起動
-  → （実装・確認を繰り返す。随時 /git:status, /git:diff）
+  → （実装・確認を繰り返す。随時 /git:diff）
   → /check                 プッシュ前の総点検
   → /git:push "feat: …"    コミット＆プッシュ
   → /git:pr                PR 作成 → マージ → 自動デプロイ
