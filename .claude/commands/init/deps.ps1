@@ -1,4 +1,4 @@
-# 初回セットアップスクリプト（.NET Framework 4.8 / ASP.NET MVC 5、非SDK形式・packages.config 方式）
+﻿# 初回セットアップスクリプト（.NET Framework 4.8 / ASP.NET MVC 5、非SDK形式・packages.config 方式）
 
 Write-Host "=== セットアップ ===" -ForegroundColor Cyan
 

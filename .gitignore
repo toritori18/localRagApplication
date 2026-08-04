@@ -47,7 +47,6 @@ TestData/
 
 # Claude Code フック・コマンドが生成する一時ファイル
 .claude/dev-server*.log
-.claude/.stop-check-cache
 
 # OS
 .DS_Store
