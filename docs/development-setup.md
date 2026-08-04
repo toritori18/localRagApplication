@@ -27,6 +27,23 @@ git config core.hooksPath .claude/hooks
 
 > `.claude/commands/init/deps.ps1`（初回セットアップスクリプト、`/init:deps` コマンド）を実行した場合は自動で登録されます。
 
+## Claude Code 設定の編集制限
+
+`.claude/settings.json` の `permissions.deny` により、以下は Claude Code 自身が編集できないよう設定されている。
+
+| 対象 | 内容 |
+|---|---|
+| `.claude/settings.json` | 権限設定・フック登録 |
+| `.claude/hooks/` 配下 | `pre-push`（push 前の機密情報チェック）、`guard-claude-md.ps1`、`inject-factcheck.ps1`、`session-check.ps1` |
+
+Claude Code に自身の権限設定やガード用フックを書き換えさせないための意図的な設定（自己保護）。**これらを変更する場合は人が直接編集すること。** Claude Code に依頼しても拒否される。
+
+この禁止は `Edit`/`Write` ツールだけでなく、シェル経由のファイル操作にも適用される（`.claude/hooks/` に対する `Move-Item`・`Remove-Item` がいずれもブロックされることを実測で確認済み）。なおブロック時のメッセージは「許可された作業ディレクトリ外」という文面になるが、実際の原因は `deny` パターンである。
+
+あわせて `Read(./.env)` / `Read(./.env.*)` も禁止されており、シークレットファイルの内容は読み取れない。
+
+> **フックスクリプトは必ず `.claude/hooks/` 配下に置くこと。** `deny` のパターンが `./.claude/hooks/**` であるため、`.claude/` 直下など別の場所に置くと保護対象から外れる。新しいフックを追加する際は、`settings.json` に登録するパスと実際の配置の両方を `.claude/hooks/` に揃える。
+
 ## シークレットの設定
 
 APIキー等のシークレットはコードや `Web.config` に直書きしない。.NET Framework（非SDK形式）では `dotnet user-secrets` は使用できないため、以下のいずれかで管理する:
