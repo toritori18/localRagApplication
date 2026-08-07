@@ -102,6 +102,7 @@ LocalRagApplication/
 │   ├── tech-stack.md                  # 技術スタック
 │   ├── development-setup.md           # 開発環境セットアップガイド
 │   ├── csharp-contributing.md         # コントリビュートガイド（C#）
+│   ├── powershell-contributing.md     # コントリビュートガイド（PowerShell）
 │   ├── sample-documents/              # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 │   └── sql/                           # SQLファイル（マイグレーション・初期データ等）
 │       └── 001_create_tables.sql      # rag.db の初期スキーマ（Documents / Chunks テーブル）
@@ -115,10 +116,10 @@ LocalRagApplication/
 
 詳細は [docs/development-setup.md](docs/development-setup.md) を参照してください。
 
-```bash
+```powershell
 nuget restore src\LocalRagApplication\LocalRagApplication.csproj -SolutionDirectory .
 nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
-msbuild LocalRagApplication.slnx /p:Configuration=Debug
+.claude\commands\vs-tools.ps1 -Task Build -Configuration Debug
 ```
 
 > `-SolutionDirectory .` は省略しないこと。省略すると復元先がリポジトリ直下の `packages/` にならず、csproj の `HintPath`（`..\..\packages\`）と食い違ってビルドが失敗する。
@@ -138,11 +139,11 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 | `/server:start` | 開発サーバー（IIS Express）を起動する | `server/start.ps1` | 作業開始時 |
 | `/server:stop` | 開発サーバー（IIS Express）を停止する | `server/stop.ps1` | 作業終了時 |
 | `/lint` | スタイル検証（非SDK形式のため未導入。実行されず、その旨が報告される） | `lint.md` 参照 | — （未導入） |
-| `/typecheck` | ビルドによる型検査（C#はコンパイル時に型検査されるため） | `msbuild LocalRagApplication.slnx /p:Configuration=Debug` | コード変更後 |
+| `/typecheck` | ビルドによる型検査（C#はコンパイル時に型検査されるため） | `vs-tools.ps1 -Task Build -Configuration Debug` | コード変更後 |
 | `/format` | コード整形（非SDK形式のため未導入。実行されず、その旨が報告される） | `format.md` 参照 | — （未導入） |
 | `/test` | MSTest によるテスト実行（Debug ビルド → `vstest.console.exe`） | `test.md` 参照 | コード変更後 |
 | `/check` | プッシュ前の総点検（Release ビルド → Release ビルド成果物に対するテスト） | `check.md` 参照 | **プッシュ・デプロイ前** |
-| `/build` | 本番用ビルド | `msbuild LocalRagApplication.slnx /p:Configuration=Release` | デプロイ前の確認 |
+| `/build` | 本番用ビルド | `vs-tools.ps1 -Task Build -Configuration Release` | デプロイ前の確認 |
 | `/deploy` | デプロイ手順の案内（PR マージ → 自動デプロイ、ホスティング先は未定） | `deploy.md` 参照 | リリース時 |
 | `/db:migrate` | DB マイグレーション（DB未確定のため方針は要検討） | `db/migrate.md` 参照 | スキーマ変更時 |
 
@@ -208,4 +209,5 @@ Claude Code が特定のタスクを委譲するサブエージェントの一�
 - [開発環境セットアップガイド](docs/development-setup.md)
 - [技術スタック](docs/tech-stack.md)
 - [Git運用ルール](docs/git-rules.md)
-- [コントリビュートガイド](docs/csharp-contributing.md)
+- [コントリビュートガイド（C#）](docs/csharp-contributing.md)
+- [コントリビュートガイド（PowerShell）](docs/powershell-contributing.md)

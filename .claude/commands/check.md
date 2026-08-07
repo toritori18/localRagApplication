@@ -1,9 +1,10 @@
-プッシュ前の総点検として、以下のコマンドを順番に実行してください（失敗した時点で停止します）。
+プッシュ前の総点検として、以下のコマンドを実行してください。
 
 ```powershell
-msbuild LocalRagApplication.slnx /p:Configuration=Release
-vstest.console.exe tests\LocalRagApplication.Tests\bin\Release\LocalRagApplication.Tests.dll
+.claude\commands\vs-tools.ps1 -Task Test -Configuration Release
 ```
+
+Release ビルドを実行してから、その成果物に対してテストを実行します（ビルドに失敗した場合はテストを実行せずに終了します）。
 
 自動フォーマッタ・スタイル検証（lint/format）は現状未導入のため、この総点検には含まれません（[lint.md](lint.md) 参照）。
 
