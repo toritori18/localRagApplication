@@ -1,6 +1,24 @@
 #!/bin/bash
 # push前の機密情報チェックスクリプト
 
+# stdin（<local ref> <local sha> <remote ref> <remote sha>）を先に読み込む。
+# 後段のループで再利用するため。
+REFS=$(cat)
+
+# ブランチ削除のみの push は検査する差分が無いため、バナーも出さずに終了する。
+# （更新と削除が混在する場合は下のループでスキップされる）
+HAS_UPDATE=0
+while read -r _ local_sha _ _; do
+    if [ -n "$local_sha" ] && [ "$local_sha" != "0000000000000000000000000000000000000000" ]; then
+        HAS_UPDATE=1
+        break
+    fi
+done <<< "$REFS"
+
+if [ "$HAS_UPDATE" -eq 0 ]; then
+    exit 0
+fi
+
 echo ""
 echo "============================="
 echo " push前 機密情報チェック実行中"
@@ -65,7 +83,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
         FOUND=1
     fi
 
-done
+done <<< "$REFS"
 
 if [ "$FOUND" -eq 1 ]; then
     echo "============================================="
