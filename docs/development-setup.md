@@ -11,11 +11,13 @@
 ```bash
 git clone <リポジトリURL>
 cd LocalRagApplication
-nuget restore src\LocalRagApplication\LocalRagApplication.csproj
-nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj
+nuget restore src\LocalRagApplication\LocalRagApplication.csproj -SolutionDirectory .
+nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
 ```
 
 > `nuget restore` に `LocalRagApplication.slnx`（新形式のソリューションファイル）を直接渡す方法は、classic な `nuget.exe` CLI の対応状況が未確認のため、プロジェクト単位で個別に復元する（[.github/workflows/ci.yml](../.github/workflows/ci.yml) も同じ方式）。
+
+> **`-SolutionDirectory .` は省略しないこと。** packages.config 方式では復元先の `packages/` フォルダを決める基準が必要だが、プロジェクト単位の復元ではそれを特定できず、`NuGet パッケージを復元するパッケージ フォルダーを特定できません` というエラーで停止する（実測）。リポジトリルートを明示することで、csproj の `HintPath`（`..\..\packages\`）と復元先が一致する。
 
 ## Git フックの登録
 
@@ -62,14 +64,24 @@ APIキー等のシークレットはコードや `Web.config` に直書きしな
 
 ## ビルド
 
-```bash
-msbuild LocalRagApplication.slnx /p:Configuration=Debug
+```powershell
+.claude\commands\vs-tools.ps1 -Task Build -Configuration Debug
 ```
+
+`-Configuration Release` を指定すると本番用ビルドになる（`/build` と同じ）。
+
+> **`msbuild` / `vstest.console.exe` は Visual Studio に同梱されているが、PATH には登録されない。** そのままコマンド名で実行しても「認識されません」で失敗する。上記スクリプトは `vswhere.exe`（Visual Studio Installer 同梱、`%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\` の固定パス）で実体のパスを解決してから実行するため、通常の PowerShell からそのまま実行できる。
+>
+> Visual Studio の Developer PowerShell（インストール先の `Common7\Tools\Launch-VsDevShell.ps1`）から起動した場合は PATH が通るため、`msbuild LocalRagApplication.slnx /p:Configuration=Debug` を直接実行してもよい。
+>
+> なお `dotnet` は PATH にあるが、`dotnet msbuild` ではビルドできない（非SDK形式の ASP.NET プロジェクトに必要な `Microsoft.WebApplication.targets` が .NET SDK 側に存在せず、`MSB4019` で失敗する。実測）。Visual Studio 同梱の MSBuild が必須。
 
 ## テスト
 
-```bash
-vstest.console.exe tests\LocalRagApplication.Tests\bin\Debug\LocalRagApplication.Tests.dll
+```powershell
+.claude\commands\vs-tools.ps1 -Task Test -Configuration Debug
 ```
+
+ビルドを実行してから、その成果物に対してテストを実行する（ビルドに失敗した場合はテストを実行せず終了する）。`-Configuration Release` を指定すると Release 成果物に対して実行する（`/check` と同じ）。
 
 テストフレームワークは MSTest（[tests/LocalRagApplication.Tests](../tests/LocalRagApplication.Tests)）。`vstest.console.exe` は Visual Studio に同梱されている。

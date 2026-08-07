@@ -52,6 +52,22 @@
 | `tests/LocalRagApplication.Tests/Fixtures/` | テスト用のサンプルファイル |
 | `docs/sql/` | SQLファイル（マイグレーション・初期データ等） |
 
+### ビルド対象への登録
+
+本プロジェクトの csproj は非SDK形式（packages.config 方式）のため、新規ファイルは csproj に登録しないとコンパイル対象にならない。
+
+- `.cs` を追加したら `<Compile Include>` を追記する
+- `.cshtml` を追加したら `<Content Include>` を追記する
+
+対象の csproj は以下の2つ。
+
+| 追加先 | csproj |
+|---|---|
+| `src/LocalRagApplication/` | [src/LocalRagApplication/LocalRagApplication.csproj](../src/LocalRagApplication/LocalRagApplication.csproj) |
+| `tests/LocalRagApplication.Tests/` | [tests/LocalRagApplication.Tests/LocalRagApplication.Tests.csproj](../tests/LocalRagApplication.Tests/LocalRagApplication.Tests.csproj) |
+
+登録し忘れてもビルドは成功してしまう（そのファイルが存在しないものとして扱われる）ため、ビルドの成否では検出できない。ファイルを追加したときは必ず登録を確認すること。
+
 ### コメント
 
 - コメントは日本語で書く
@@ -108,7 +124,7 @@ if (isValid) return true;
 - 存在しない NuGet パッケージ・API・メソッドの使用（実装前に [.claude/factcheck.md](../.claude/factcheck.md) のチェックリストに従い実在確認する）
 - APIキー・シークレットのコードへの直書き（管理方法は [docs/development-setup.md](development-setup.md) の「シークレットの設定」を参照）
 - シークレットを含むファイルの git へのコミット
-- 本番コードでの `Console.WriteLine` 等の直接出力（ロギングは `ILogger` を使用する）
+- 本番コードでの `Console.WriteLine` 等の直接出力（ロギングは `Infrastructure/` のロガー抽象を使用する。取り込み処理の警告・エラーは [`IIngestionLogger`](../src/LocalRagApplication/Infrastructure/IIngestionLogger.cs)、処理時間の計測は [`IQueryMetricsLogger`](../src/LocalRagApplication/Infrastructure/IQueryMetricsLogger.cs)）
 
 ## プルリクエストのルール
 
