@@ -18,27 +18,9 @@ trim_trailing_whitespace = false
 [*.ps1]
 charset = utf-8-bom
 end_of_line = crlf
+indent_size = 4
 
-# C# コーディング規則（出典: https://learn.microsoft.com/ja-jp/dotnet/fundamentals/code-analysis/style-rules/naming-rules）
 [*.cs]
 indent_size = 4
 
-# private フィールドは _camelCase
-dotnet_naming_rule.private_fields_underscore_camel_case.severity = warning
-dotnet_naming_rule.private_fields_underscore_camel_case.symbols = private_fields
-dotnet_naming_rule.private_fields_underscore_camel_case.style = underscore_camel_case
-
-dotnet_naming_symbols.private_fields.applicable_kinds = field
-dotnet_naming_symbols.private_fields.applicable_accessibilities = private
-
-dotnet_naming_style.underscore_camel_case.capitalization = camel_case
-dotnet_naming_style.underscore_camel_case.required_prefix = _
-
-# 型・メソッド・プロパティ・イベントは PascalCase
-dotnet_naming_rule.types_members_pascal_case.severity = warning
-dotnet_naming_rule.types_members_pascal_case.symbols = types_members
-dotnet_naming_rule.types_members_pascal_case.style = pascal_case
-
-dotnet_naming_symbols.types_members.applicable_kinds = class, struct, interface, enum, method, property, event
-
-dotnet_naming_style.pascal_case.capitalization = pascal_case
+# 命名規約は docs/csharp-contributing.md を正とする（ここには定義しない）

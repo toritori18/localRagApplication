@@ -1,5 +1,8 @@
 ﻿# 初回セットアップスクリプト（.NET Framework 4.8 / ASP.NET MVC 5、非SDK形式・packages.config 方式）
 
+# Claude Code は出力を UTF-8 として読むため、stdout を UTF-8 に固定する（文字化け防止）
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 Write-Host "=== セットアップ ===" -ForegroundColor Cyan
 
 # [1/2] .NET Framework 4.8 のインストール状況を確認する
