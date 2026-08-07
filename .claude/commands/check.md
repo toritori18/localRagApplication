@@ -1,10 +1,13 @@
 プッシュ前の総点検として、以下のコマンドを実行してください。
 
 ```powershell
-.claude\commands\vs-tools.ps1 -Task Test -Configuration Release
+.claude\commands\check.ps1
 ```
 
-Release ビルドを実行してから、その成果物に対してテストを実行します（ビルドに失敗した場合はテストを実行せずに終了します）。
+以下を順に実行し、途中で失敗したら後続を実行せず停止します（`exit 1`）。
+
+1. テストクラスの欠落検査（`verify-tests.ps1`）— `src/LocalRagApplication/` の各クラスに対応するテストクラスが存在するか、無い場合は `tests/LocalRagApplication.Tests/no-test-required.md` に理由付きで除外宣言されているかを確認します
+2. Release ビルド + テスト（`vs-tools.ps1 -Task Test -Configuration Release`）— ビルドを実行してから、その成果物に対してテストを実行します（ビルドに失敗した場合はテストを実行せずに終了します）
 
 自動フォーマッタ・スタイル検証（lint/format）は現状未導入のため、この総点検には含まれません（[lint.md](lint.md) 参照）。
 

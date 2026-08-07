@@ -118,6 +118,45 @@ if (isValid) return true;
 
 - テストフレームワークは MSTest を使用する（`[TestClass]` / `[TestMethod]` 属性を付与する）
 - テストクラスは対象クラス名 + `Test`（例: `HomeControllerTest.cs`、[tests/LocalRagApplication.Tests/Controllers/HomeControllerTest.cs](../tests/LocalRagApplication.Tests/Controllers/HomeControllerTest.cs) 参照）とする
+- テストメソッド名は `対象メソッド名_期待する振る舞い` とし、振る舞いの部分は日本語で書く（例: `Split_chunkSizeが0以下の場合はArgumentExceptionをスローする`）
+
+#### テストを書く基準
+
+以下のいずれかに当てはまる public メソッドを追加・変更したときはテストを書く。
+
+- 条件分岐がある（入力によって戻り値・副作用が変わる）
+- データ変換を行う（型変換・シリアライズ・分割・整形）
+- 引数を検証して例外をスローする
+- 件数・順序・境界値を制御する（上位N件・オーバーラップ等）
+
+以下は対象外とする。
+
+- `Models/` 配下のファイル
+- `App_Start/` の起動時設定・`Global.asax.cs`・`Properties/AssemblyInfo.cs`
+- インターフェース定義のみのファイル
+- メッセージ保持のみの例外クラス
+
+上記のいずれにも明確に当てはまらず判断に迷う場合は、実装を進める前にユーザーに確認すること。
+
+`Models/` は機械検査（[.claude/commands/verify-tests.ps1](../.claude/commands/verify-tests.ps1)）ではディレクトリ単位で無条件に除外している。データ保持のみのクラス・enum を置く分には問題ないが、`Models/` にロジックを持つクラスを置く場合は機械検査では検出されないため、レビューで見る必要がある。
+
+#### 外部依存の扱い
+
+| 依存先 | テストでの扱い | 参考にする既存テスト |
+|---|---|---|
+| SQLite | 実DBを使う。`Path.GetTempFileName()` の一時ファイルに接続し、`[TestCleanup]` で `SQLiteConnection.ClearAllPools()` を呼んでからファイルを削除する | [tests/LocalRagApplication.Tests/Services/QueryServiceTest.cs](../tests/LocalRagApplication.Tests/Services/QueryServiceTest.cs) |
+| Ollama | 実通信は行わない。`IOllamaClient` を `FakeOllamaClient` に差し替える | [tests/LocalRagApplication.Tests/Services/DocumentIngestionServiceTest.cs](../tests/LocalRagApplication.Tests/Services/DocumentIngestionServiceTest.cs) |
+| 入力ファイル | `Fixtures/` の実ファイルを `FakeHttpPostedFile.FromFile` 経由で渡す | 同上 |
+| 出力ファイル | `Path.GetTempPath()` 配下に GUID 付きディレクトリを作り、`[TestCleanup]` で削除する | [tests/LocalRagApplication.Tests/Infrastructure/FileQueryMetricsLoggerTest.cs](../tests/LocalRagApplication.Tests/Infrastructure/FileQueryMetricsLoggerTest.cs) |
+| ロギング | `FakeIngestionLogger` / `FakeQueryMetricsLogger` に差し替える | [tests/LocalRagApplication.Tests/Services/DocumentIngestionServiceTest.cs](../tests/LocalRagApplication.Tests/Services/DocumentIngestionServiceTest.cs) |
+
+- モックライブラリは未導入。テストダブルは `tests/LocalRagApplication.Tests/TestDoubles/` に手書きで追加する（既存ファイルと同じ形式）
+- 依存を外から差し替えられない場合は、既定コンストラクタを残したまま依存を受け取るコンストラクタを追加する。本番経路は既定コンストラクタのまま変えない（既存例: `SqliteDocumentRepository(string connectionString)`、`FileQueryMetricsLogger(string logsDir)`。どちらも「テスト等で〜を使う場合を想定」という XML コメント付きで実在する）
+
+#### 関連ルール
+
+- 新規テストファイルも csproj への `<Compile Include>` 登録が必要。詳細は同ファイル内の「[ビルド対象への登録](#ビルド対象への登録)」を参照
+- テストクラスの欠落は機械検査（`/check` と CI が実行する [.claude/commands/verify-tests.ps1](../.claude/commands/verify-tests.ps1)）が検出する。除外を宣言する場合は [tests/LocalRagApplication.Tests/no-test-required.md](../tests/LocalRagApplication.Tests/no-test-required.md) に理由付きで追記する
 
 ## 禁止事項
 
