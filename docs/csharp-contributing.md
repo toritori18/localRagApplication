@@ -10,7 +10,7 @@
 
 ### 言語・型
 
-- 拡張子は `.cs` のみを使用する
+- C# のソースファイルの拡張子は `.cs` のみを使用する（Razor ビューの `.cshtml` は対象外。規約は [razor-contributing.md](razor-contributing.md) を参照）
 - 対象ランタイムは .NET Framework 4.8（[docs/tech-stack.md](tech-stack.md) 参照）。ASP.NET MVC 5 として実装する
 - `var` は代入の右辺から型が明確に分かる場合のみ使用する
 
@@ -42,7 +42,7 @@
 | パス | 役割 |
 |---|---|
 | `src/LocalRagApplication/Controllers/` | MVCコントローラー |
-| `src/LocalRagApplication/Views/` | Razorビュー（`.cshtml`） |
+| `src/LocalRagApplication/Views/` | Razorビュー（`.cshtml`）。規約は [razor-contributing.md](razor-contributing.md) |
 | `src/LocalRagApplication/App_Start/` | 起動時設定（Bundle/Filter/Route） |
 | `src/LocalRagApplication/Models/` | モデル |
 | `src/LocalRagApplication/Services/` | アプリケーションサービス・リポジトリ（`TextExtraction/`・`Chunking/`・`Ollama/` に機能別のサブフォルダを作る） |

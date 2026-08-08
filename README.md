@@ -107,6 +107,7 @@ LocalRagApplication/
 │   ├── development-setup.md           # 開発環境セットアップガイド
 │   ├── csharp-contributing.md         # コントリビュートガイド（C#）
 │   ├── powershell-contributing.md     # コントリビュートガイド（PowerShell）
+│   ├── razor-contributing.md          # コントリビュートガイド（Razor）
 │   ├── sample-documents/              # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 │   └── sql/                           # SQLファイル（マイグレーション・初期データ等）
 │       └── 001_create_tables.sql      # rag.db の初期スキーマ（Documents / Chunks テーブル）
@@ -206,7 +207,7 @@ Claude Code が特定のタスクを委譲するサブエージェントの一�
 |---|---|---|---|
 | `code-reviewer` | 変更ファイルの言語に応じた `docs/*-contributing.md`・`factcheck.md` に基づくコードレビュー | Read, Grep, Glob | 実装完了後、コミット前 |
 | `coder` | 変更対象の言語に応じた `docs/*-contributing.md` に従った実装（クラス・メソッド・ロジックの新規実装や修正） | Read, Write, Edit, Glob, Grep, Bash | 実装時 |
-| `readme-syncer` | リポジトリ全体を読み、`README.md` と実体（`.claude/commands/`・`.claude/agents/`・ディレクトリ構成）の乖離を検出・修正する（`README.md` 以外は編集しない） | Read, Edit, Glob, Grep | コマンド・エージェント・ディレクトリ構成の追加/削除/リネーム後 |
+| `readme-syncer` | リポジトリ全体を読み、`README.md` と実体（`.claude/commands/`・`.claude/agents/`・ディレクトリ構成）の乖離を検出・修正する（`README.md` 以外は編集しない） | Read, Edit, Glob, Grep, Bash | コマンド・エージェント・ディレクトリ構成の追加/削除/リネーム後 |
 
 ## ドキュメント
 
@@ -215,3 +216,4 @@ Claude Code が特定のタスクを委譲するサブエージェントの一�
 - [Git運用ルール](docs/git-rules.md)
 - [コントリビュートガイド（C#）](docs/csharp-contributing.md)
 - [コントリビュートガイド（PowerShell）](docs/powershell-contributing.md)
+- [コントリビュートガイド（Razor）](docs/razor-contributing.md)

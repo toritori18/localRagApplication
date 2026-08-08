@@ -23,4 +23,9 @@ indent_size = 4
 [*.cs]
 indent_size = 4
 
+# Razor ビューは .cs と揃えて BOM なし・インデント4（実測: 構造的な行はすべて4の倍数、タブ0件）
+[*.cshtml]
+charset = utf-8
+indent_size = 4
+
 # 命名規約は docs/csharp-contributing.md を正とする（ここには定義しない）

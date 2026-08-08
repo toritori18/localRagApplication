@@ -20,7 +20,8 @@ model: claude-opus-5
 
 | 拡張子 | 規約ドキュメント |
 |---|---|
-| `.cs`, `.cshtml` | `docs/csharp-contributing.md` |
+| `.cs` | `docs/csharp-contributing.md` |
+| `.cshtml` | `docs/razor-contributing.md` |
 | `.ps1` | `docs/powershell-contributing.md` |
 
 複数言語のファイルが混在する変更の場合は、それぞれの言語に対応するドキュメントをすべて読んだうえでレビューする。

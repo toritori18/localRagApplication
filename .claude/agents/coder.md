@@ -20,7 +20,8 @@ model: sonnet
 
 | 拡張子 | 規約ドキュメント |
 |---|---|
-| `.cs`, `.cshtml` | `docs/csharp-contributing.md` |
+| `.cs` | `docs/csharp-contributing.md` |
+| `.cshtml` | `docs/razor-contributing.md` |
 | `.ps1` | `docs/powershell-contributing.md` |
 
 対応表にない言語での実装を求められた場合は、自己判断で規約を作らず、その旨をユーザーに伝えて規約ドキュメントの新規作成を確認すること。
