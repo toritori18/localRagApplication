@@ -66,7 +66,9 @@
 | `src/LocalRagApplication/` | [src/LocalRagApplication/LocalRagApplication.csproj](../src/LocalRagApplication/LocalRagApplication.csproj) |
 | `tests/LocalRagApplication.Tests/` | [tests/LocalRagApplication.Tests/LocalRagApplication.Tests.csproj](../tests/LocalRagApplication.Tests/LocalRagApplication.Tests.csproj) |
 
-登録し忘れてもビルドは成功してしまう（そのファイルが存在しないものとして扱われる）ため、ビルドの成否では検出できない。ファイルを追加したときは必ず登録を確認すること。
+登録し忘れても、追加直後でまだどこからも参照されていなければビルドは成功してしまう（そのファイルが存在しないものとして扱われる）。参照されて初めて失敗するため、ビルドの成否だけでは登録漏れを確実には検出できない。ファイルを追加したときは必ず登録を確認すること。
+
+`tests/LocalRagApplication.Tests/` の `.cs` の登録漏れは機械検査（[.claude/commands/verify-tests.ps1](../.claude/commands/verify-tests.ps1)。`/check` と CI が実行）が検出する。テスト用の `[TestClass]` は csproj に登録し忘れるとコンパイル対象にならないため、その `[TestClass]` はテスト実行の対象に現れず、失敗するはずのテストが1件も実行されないまま成功扱いになる（実測: 「テストの合計数: 121 / 成功: 121」のまま素通りした。静かに壊れる）。一方 `src/LocalRagApplication/` の `.cs` と `.cshtml` の登録漏れは引き続き機械検査で検出されない（`src` 側は未登録クラスが参照された瞬間に `CS0246` でビルドが失敗するため、`.cshtml` は IIS Express がプロジェクトフォルダを物理ファイルシステムとしてそのまま配信するため、いずれも静かには壊れない）。
 
 ### コメント
 
@@ -155,7 +157,7 @@ if (isValid) return true;
 
 #### 関連ルール
 
-- 新規テストファイルも csproj への `<Compile Include>` 登録が必要。詳細は同ファイル内の「[ビルド対象への登録](#ビルド対象への登録)」を参照
+- 新規テストファイルも csproj への `<Compile Include>` 登録が必要。詳細は同ファイル内の「[ビルド対象への登録](#ビルド対象への登録)」を参照。登録漏れは機械検査（[.claude/commands/verify-tests.ps1](../.claude/commands/verify-tests.ps1)）が検出する
 - テストクラスの欠落は機械検査（`/check` と CI が実行する [.claude/commands/verify-tests.ps1](../.claude/commands/verify-tests.ps1)）が検出する。除外を宣言する場合は [tests/LocalRagApplication.Tests/no-test-required.md](../tests/LocalRagApplication.Tests/no-test-required.md) に理由付きで追記する
 
 ## 禁止事項

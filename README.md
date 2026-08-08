@@ -51,7 +51,7 @@ LocalRagApplication/
 │       ├── vs-tools.ps1               # vswhere で msbuild/vstest.console.exe を解決してビルド・テストを実行（/typecheck・/build・/test・/check の実体）
 │       ├── check.ps1                  # /check の実体（verify-docs.ps1 → verify-tests.ps1 → vs-tools.ps1 の順に実行し、失敗したら後続を止める）
 │       ├── verify-docs.ps1            # ドキュメント（.md）の参照先検査（check.ps1 と CI の両方から呼ばれる）
-│       ├── verify-tests.ps1           # テストクラスの欠落検査（check.ps1 と CI の両方から呼ばれる）
+│       ├── verify-tests.ps1           # テストクラスの欠落・csproj 登録漏れ検査（check.ps1 と CI の両方から呼ばれる）
 │       └── *.md                       # 名前空間なしのコマンド（build/check/test/typecheck/lint/format/deploy/plan）
 ├── .github/
 │   └── workflows/
