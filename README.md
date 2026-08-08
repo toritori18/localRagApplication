@@ -48,12 +48,13 @@ LocalRagApplication/
 │       ├── server/                    # サーバー関連（start/stop。common.ps1 は両者が dot-source する共通処理）
 │       ├── db/                        # DB関連
 │       ├── vs-tools.ps1               # vswhere で msbuild/vstest.console.exe を解決してビルド・テストを実行（/typecheck・/build・/test・/check の実体）
-│       ├── check.ps1                  # /check の実体（verify-tests.ps1 → vs-tools.ps1 の順に実行し、失敗したら後続を止める）
+│       ├── check.ps1                  # /check の実体（verify-docs.ps1 → verify-tests.ps1 → vs-tools.ps1 の順に実行し、失敗したら後続を止める）
+│       ├── verify-docs.ps1            # ドキュメント（.md）の参照先検査（check.ps1 と CI の両方から呼ばれる）
 │       ├── verify-tests.ps1           # テストクラスの欠落検査（check.ps1 と CI の両方から呼ばれる）
 │       └── *.md                       # 名前空間なしのコマンド（build/check/test/typecheck/lint/format/deploy/plan）
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                     # CI（nuget restore → Release ビルド → テスト）
+│       └── ci.yml                     # CI（ドキュメント検査 → nuget restore → テストクラス欠落検査 → Release ビルド → テスト）
 ├── src/
 │   └── LocalRagApplication/           # ASP.NET MVC 5（.NET Framework 4.8, packages.config）
 │       ├── App_Start/                 # 起動時設定（Bundle/Filter/Route）
@@ -147,7 +148,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 | `/typecheck` | ビルドによる型検査（C#はコンパイル時に型検査されるため） | `vs-tools.ps1 -Task Build -Configuration Debug` | コード変更後 |
 | `/format` | コード整形（非SDK形式のため未導入。実行されず、その旨が報告される） | `format.md` 参照 | — （未導入） |
 | `/test` | MSTest によるテスト実行（Debug ビルド → `vstest.console.exe`） | `test.md` 参照 | コード変更後 |
-| `/check` | プッシュ前の総点検（テストクラスの欠落検査 → Release ビルド + テスト） | `check.ps1` | **プッシュ・デプロイ前** |
+| `/check` | プッシュ前の総点検（ドキュメントの参照先検査 → テストクラスの欠落検査 → Release ビルド + テスト） | `check.ps1` | **プッシュ・デプロイ前** |
 | `/build` | 本番用ビルド | `vs-tools.ps1 -Task Build -Configuration Release` | デプロイ前の確認 |
 | `/deploy` | デプロイ手順の案内（PR マージ → 自動デプロイ、ホスティング先は未定） | `deploy.md` 参照 | リリース時 |
 | `/db:migrate` | DB マイグレーション（DB未確定のため方針は要検討） | `db/migrate.md` 参照 | スキーマ変更時 |
@@ -189,6 +190,8 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
   → /git:merge             CI 確認 → main へマージ → 自動デプロイ
   → /git:cleanup           マージ済みブランチの整理（任意）
 ```
+
+これは新しく作業を始める場合の流れです。**既存のブランチで作業を再開する場合の開始位置の判断**（今どのブランチにいるか、PR が既にあるか）と、新規ファイルを `git add` する必要がある点については、[docs/git-rules.md](docs/git-rules.md#コミット--プッシュの手順) の「コミット & プッシュの手順」を参照してください。
 
 ### コマンドを追加するには
 

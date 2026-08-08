@@ -17,6 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # ビルドを伴わないため、復元・ビルドより先に実行して早く失敗させる
+      - name: ドキュメントの参照先検査
+        shell: pwsh
+        run: .claude\commands\verify-docs.ps1
+
       - name: NuGet のセットアップ
         uses: NuGet/setup-nuget@v3
         with:
