@@ -35,6 +35,7 @@ LocalRagApplication/
 ├── README.md                          # このファイル（プロジェクト説明）
 ├── LocalRagApplication.slnx           # ソリューションファイル
 ├── .gitignore
+├── .gitattributes                     # 改行コードの正規化（リポジトリ側で固定、個人設定に依存しない）
 ├── .editorconfig                      # 文字コード・改行・インデント（.ps1 は BOM 必須・CRLF）
 ├── .env.example                       # 環境変数のサンプル（シークレット管理方式は未確定）
 ├── .claude/
@@ -50,7 +51,7 @@ LocalRagApplication/
 │       ├── vs-tools.ps1               # vswhere で msbuild/vstest.console.exe を解決してビルド・テストを実行（/typecheck・/build・/test・/check の実体）
 │       ├── check.ps1                  # /check の実体（verify-docs.ps1 → verify-tests.ps1 → vs-tools.ps1 の順に実行し、失敗したら後続を止める）
 │       ├── verify-docs.ps1            # ドキュメント（.md）の参照先検査（check.ps1 と CI の両方から呼ばれる）
-│       ├── verify-tests.ps1           # テストクラスの欠落検査（check.ps1 と CI の両方から呼ばれる）
+│       ├── verify-tests.ps1           # テストクラスの欠落・csproj 登録漏れ検査（check.ps1 と CI の両方から呼ばれる）
 │       └── *.md                       # 名前空間なしのコマンド（build/check/test/typecheck/lint/format/deploy/plan）
 ├── .github/
 │   └── workflows/
@@ -147,7 +148,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 | `/lint` | スタイル検証（非SDK形式のため未導入。実行されず、その旨が報告される） | `lint.md` 参照 | — （未導入） |
 | `/typecheck` | ビルドによる型検査（C#はコンパイル時に型検査されるため） | `vs-tools.ps1 -Task Build -Configuration Debug` | コード変更後 |
 | `/format` | コード整形（非SDK形式のため未導入。実行されず、その旨が報告される） | `format.md` 参照 | — （未導入） |
-| `/test` | MSTest によるテスト実行（Debug ビルド → `vstest.console.exe`） | `test.md` 参照 | コード変更後 |
+| `/test` | MSTest によるテスト実行（Debug ビルド → `vstest.console.exe`） | `vs-tools.ps1 -Task Test -Configuration Debug` | コード変更後 |
 | `/check` | プッシュ前の総点検（ドキュメントの参照先検査 → テストクラスの欠落検査 → Release ビルド + テスト） | `check.ps1` | **プッシュ・デプロイ前** |
 | `/build` | 本番用ビルド | `vs-tools.ps1 -Task Build -Configuration Release` | デプロイ前の確認 |
 | `/deploy` | デプロイ手順の案内（PR マージ → 自動デプロイ、ホスティング先は未定） | `deploy.md` 参照 | リリース時 |
