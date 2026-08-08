@@ -31,6 +31,7 @@ namespace LocalRagApplication.Services.Ollama
             Timeout = TimeSpan.FromMinutes(5)
         };
 
+        private readonly HttpClient _httpClient;
         private readonly IQueryMetricsLogger _metricsLogger;
 
         /// <summary>
@@ -52,6 +53,51 @@ namespace LocalRagApplication.Services.Ollama
                 throw new ArgumentNullException(nameof(metricsLogger));
             }
 
+            _httpClient = HttpClientInstance;
+            _metricsLogger = metricsLogger;
+        }
+
+        /// <summary>
+        /// HTTP通信を行う <see cref="HttpMessageHandler"/> と、既定の内訳ログ出力先
+        /// （<see cref="FileQueryMetricsLogger"/>）を使って初期化する（テスト等で実通信を行わずレスポンスを
+        /// 固定する場合を想定）。
+        /// </summary>
+        /// <param name="httpMessageHandler">HTTP送信を差し替えるハンドラー（テストダブル等）。</param>
+        /// <exception cref="ArgumentNullException"><paramref name="httpMessageHandler"/> が null の場合。</exception>
+        public OllamaClient(HttpMessageHandler httpMessageHandler) : this(httpMessageHandler, new FileQueryMetricsLogger())
+        {
+        }
+
+        /// <summary>
+        /// HTTP通信を行う <see cref="HttpMessageHandler"/> と内訳ログの記録先の両方を注入して初期化する
+        /// （テスト等でHTTP通信・ロギングの両方をフェイクに差し替える場合を想定）。
+        /// </summary>
+        /// <remarks>
+        /// 既定コンストラクタ（<see cref="OllamaClient()"/> ・ <see cref="OllamaClient(IQueryMetricsLogger)"/>）は
+        /// ソケット枯渇を避けるためアプリケーション全体で共有される static な <see cref="HttpClient"/>
+        /// （<see cref="HttpClientInstance"/>）をそのまま使い続ける。一方、このコンストラクタで生成した
+        /// インスタンスは渡された <paramref name="httpMessageHandler"/> をラップした専用の <see cref="HttpClient"/>
+        /// を新規に作成する。テストでは実通信を行わないため、共有インスタンスを使い回すメリット（ソケット枯渇の回避）が
+        /// 意味を持たない一方、テストごとに異なるハンドラー（固定レスポンス・例外スロー等）を差し込む必要があるため。
+        /// </remarks>
+        /// <param name="httpMessageHandler">HTTP送信を差し替えるハンドラー（テストダブル等）。</param>
+        /// <param name="metricsLogger">処理時間内訳の記録先。</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="httpMessageHandler"/> または <paramref name="metricsLogger"/> が null の場合。
+        /// </exception>
+        public OllamaClient(HttpMessageHandler httpMessageHandler, IQueryMetricsLogger metricsLogger)
+        {
+            if (httpMessageHandler == null)
+            {
+                throw new ArgumentNullException(nameof(httpMessageHandler));
+            }
+
+            if (metricsLogger == null)
+            {
+                throw new ArgumentNullException(nameof(metricsLogger));
+            }
+
+            _httpClient = new HttpClient(httpMessageHandler);
             _metricsLogger = metricsLogger;
         }
 
@@ -158,12 +204,12 @@ namespace LocalRagApplication.Services.Ollama
         /// <param name="json">送信するJSON文字列。</param>
         /// <returns>レスポンス本文の文字列。</returns>
         /// <exception cref="OllamaConnectionException">Ollamaサーバーに接続できない、またはタイムアウトした場合。</exception>
-        private static async Task<string> PostJsonAsync(string url, string json)
+        private async Task<string> PostJsonAsync(string url, string json)
         {
             try
             {
                 using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
-                using (var response = await HttpClientInstance.PostAsync(url, content).ConfigureAwait(false))
+                using (var response = await _httpClient.PostAsync(url, content).ConfigureAwait(false))
                 {
                     response.EnsureSuccessStatusCode();
                     return await response.Content.ReadAsStringAsync().ConfigureAwait(false);

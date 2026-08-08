@@ -31,6 +31,10 @@ jobs:
       - name: 依存関係の復元（tests）
         run: nuget restore tests\LocalRagApplication.Tests\LocalRagApplication.Tests.csproj -SolutionDirectory .
 
+      - name: テストクラスの欠落検査
+        shell: pwsh
+        run: .claude\commands\verify-tests.ps1
+
       - name: ビルド（Release）
         run: msbuild LocalRagApplication.slnx /p:Configuration=Release /p:Platform="Any CPU"
 

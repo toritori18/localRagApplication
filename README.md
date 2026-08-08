@@ -45,8 +45,11 @@ LocalRagApplication/
 │   └── commands/                      # カスタムスラッシュコマンド
 │       ├── git/                       # Git関連（init/branch/push/pr/merge/cleanup等）
 │       ├── init/                      # 初回セットアップ関連（deps）
-│       ├── server/                    # サーバー関連
+│       ├── server/                    # サーバー関連（start/stop。common.ps1 は両者が dot-source する共通処理）
 │       ├── db/                        # DB関連
+│       ├── vs-tools.ps1               # vswhere で msbuild/vstest.console.exe を解決してビルド・テストを実行（/typecheck・/build・/test・/check の実体）
+│       ├── check.ps1                  # /check の実体（verify-tests.ps1 → vs-tools.ps1 の順に実行し、失敗したら後続を止める）
+│       ├── verify-tests.ps1           # テストクラスの欠落検査（check.ps1 と CI の両方から呼ばれる）
 │       └── *.md                       # 名前空間なしのコマンド（build/check/test/typecheck/lint/format/deploy/plan）
 ├── .github/
 │   └── workflows/
@@ -90,7 +93,8 @@ LocalRagApplication/
 │       ├── Services/                  # サービス層のテスト（TextExtraction/ Chunking/ を含む）
 │       ├── Infrastructure/            # 基盤コードのテスト（VectorMath 等）
 │       ├── TestDoubles/               # 手書きのフェイク実装（FakeOllamaClient 等。モックライブラリ未導入のため）
-│       └── Fixtures/                  # テスト用サンプルファイル（sample.*・invalid_* は異常系検証用）
+│       ├── Fixtures/                  # テスト用サンプルファイル（sample.*・invalid_* は異常系検証用）
+│       └── no-test-required.md        # テストを書かないと判定したクラスの除外宣言（理由付き。`verify-tests.ps1` が参照）
 ├── packages/                          # NuGet復元先（packages.config方式、.gitignore対象）
 ├── data/                              # アップロードされた元ファイル・索引データ（.gitignore 対象、フォルダのみ保持）
 │   ├── sources/                       # アップロードされた元ファイルの保存先
@@ -103,6 +107,7 @@ LocalRagApplication/
 │   ├── development-setup.md           # 開発環境セットアップガイド
 │   ├── csharp-contributing.md         # コントリビュートガイド（C#）
 │   ├── powershell-contributing.md     # コントリビュートガイド（PowerShell）
+│   ├── razor-contributing.md          # コントリビュートガイド（Razor）
 │   ├── sample-documents/              # 動作検証用のサンプル文書（架空の内容。/Documents からアップロードして試せる）
 │   └── sql/                           # SQLファイル（マイグレーション・初期データ等）
 │       └── 001_create_tables.sql      # rag.db の初期スキーマ（Documents / Chunks テーブル）
@@ -142,7 +147,7 @@ Claude Code で使えるカスタムスラッシュコマンドの一覧です�
 | `/typecheck` | ビルドによる型検査（C#はコンパイル時に型検査されるため） | `vs-tools.ps1 -Task Build -Configuration Debug` | コード変更後 |
 | `/format` | コード整形（非SDK形式のため未導入。実行されず、その旨が報告される） | `format.md` 参照 | — （未導入） |
 | `/test` | MSTest によるテスト実行（Debug ビルド → `vstest.console.exe`） | `test.md` 参照 | コード変更後 |
-| `/check` | プッシュ前の総点検（Release ビルド → Release ビルド成果物に対するテスト） | `check.md` 参照 | **プッシュ・デプロイ前** |
+| `/check` | プッシュ前の総点検（テストクラスの欠落検査 → Release ビルド + テスト） | `check.ps1` | **プッシュ・デプロイ前** |
 | `/build` | 本番用ビルド | `vs-tools.ps1 -Task Build -Configuration Release` | デプロイ前の確認 |
 | `/deploy` | デプロイ手順の案内（PR マージ → 自動デプロイ、ホスティング先は未定） | `deploy.md` 参照 | リリース時 |
 | `/db:migrate` | DB マイグレーション（DB未確定のため方針は要検討） | `db/migrate.md` 参照 | スキーマ変更時 |
@@ -202,7 +207,7 @@ Claude Code が特定のタスクを委譲するサブエージェントの一�
 |---|---|---|---|
 | `code-reviewer` | 変更ファイルの言語に応じた `docs/*-contributing.md`・`factcheck.md` に基づくコードレビュー | Read, Grep, Glob | 実装完了後、コミット前 |
 | `coder` | 変更対象の言語に応じた `docs/*-contributing.md` に従った実装（クラス・メソッド・ロジックの新規実装や修正） | Read, Write, Edit, Glob, Grep, Bash | 実装時 |
-| `readme-syncer` | リポジトリ全体を読み、`README.md` と実体（`.claude/commands/`・`.claude/agents/`・ディレクトリ構成）の乖離を検出・修正する（`README.md` 以外は編集しない） | Read, Edit, Glob, Grep | コマンド・エージェント・ディレクトリ構成の追加/削除/リネーム後 |
+| `readme-syncer` | リポジトリ全体を読み、`README.md` と実体（`.claude/commands/`・`.claude/agents/`・ディレクトリ構成）の乖離を検出・修正する（`README.md` 以外は編集しない） | Read, Edit, Glob, Grep, Bash | コマンド・エージェント・ディレクトリ構成の追加/削除/リネーム後 |
 
 ## ドキュメント
 
@@ -211,3 +216,4 @@ Claude Code が特定のタスクを委譲するサブエージェントの一�
 - [Git運用ルール](docs/git-rules.md)
 - [コントリビュートガイド（C#）](docs/csharp-contributing.md)
 - [コントリビュートガイド（PowerShell）](docs/powershell-contributing.md)
+- [コントリビュートガイド（Razor）](docs/razor-contributing.md)

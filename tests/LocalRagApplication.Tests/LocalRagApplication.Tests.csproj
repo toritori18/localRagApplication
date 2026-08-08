@@ -99,11 +99,18 @@
     <Compile Include="Controllers\AskControllerTest.cs" />
     <Compile Include="Infrastructure\FileQueryMetricsLoggerTest.cs" />
     <Compile Include="Infrastructure\VectorMathTest.cs" />
+    <Compile Include="Infrastructure\AppPathsTest.cs" />
+    <Compile Include="Infrastructure\FileIngestionLoggerTest.cs" />
+    <Compile Include="Infrastructure\RagSettingsTest.cs" />
     <Compile Include="Services\TextExtraction\PlainTextExtractorTest.cs" />
     <Compile Include="Services\TextExtraction\PdfTextExtractorTest.cs" />
     <Compile Include="Services\Chunking\FixedLengthTextChunkerTest.cs" />
     <Compile Include="Services\DocumentIngestionServiceTest.cs" />
     <Compile Include="Services\QueryServiceTest.cs" />
+    <Compile Include="Services\SqliteDocumentRepositoryTest.cs" />
+    <Compile Include="Services\SqliteVectorIndexRepositoryTest.cs" />
+    <Compile Include="Services\SessionChatHistoryStoreTest.cs" />
+    <Compile Include="Services\Ollama\OllamaClientTest.cs" />
     <Compile Include="TestDoubles\FakeOllamaClient.cs" />
     <Compile Include="TestDoubles\FakeHttpPostedFile.cs" />
     <Compile Include="TestDoubles\FakeIngestionLogger.cs" />
@@ -112,6 +119,7 @@
     <Compile Include="TestDoubles\FakeDocumentRepository.cs" />
     <Compile Include="TestDoubles\FakeQueryService.cs" />
     <Compile Include="TestDoubles\FakeChatHistoryStore.cs" />
+    <Compile Include="TestDoubles\FakeHttpMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App.config" />

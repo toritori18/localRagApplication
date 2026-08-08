@@ -81,11 +81,20 @@ Write-Host "ERROR: iisexpress.exe が見つかりません。Visual Studio 2022 
 
 - 外部コマンド（`git` / `nuget` 等）を呼んだ直後は `if (-not $?) { ... }` で成否を確認する
 - 失敗したら原因を出力して `exit 1` で終了する。握りつぶして続行しない
+- 別の `.ps1` を `&` で呼んだ場合は、`$?` と `$LASTEXITCODE` の両方を見るのが確実（`if (-not $? -or $LASTEXITCODE -ne 0) { ... }`）。実例: [check.ps1](../.claude/commands/check.ps1)
 
 ```powershell
 git commit -m $Message
 if (-not $?) {
     Write-Host "ERROR: git commit に失敗しました。" -ForegroundColor Red
+    exit 1
+}
+```
+
+```powershell
+& (Join-Path $PSScriptRoot 'verify-tests.ps1')
+if (-not $? -or $LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: テストクラスの欠落検査に失敗しました。" -ForegroundColor Red
     exit 1
 }
 ```

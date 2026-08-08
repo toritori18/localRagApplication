@@ -20,7 +20,8 @@ model: sonnet
 
 | 拡張子 | 規約ドキュメント |
 |---|---|
-| `.cs`, `.cshtml` | `docs/csharp-contributing.md` |
+| `.cs` | `docs/csharp-contributing.md` |
+| `.cshtml` | `docs/razor-contributing.md` |
 | `.ps1` | `docs/powershell-contributing.md` |
 
 対応表にない言語での実装を求められた場合は、自己判断で規約を作らず、その旨をユーザーに伝えて規約ドキュメントの新規作成を確認すること。
@@ -43,6 +44,7 @@ model: sonnet
 
 - 実装・修正されたソースコード（成果物そのもの）
 - 「出典なし」として実装した箇所があれば、その一覧（無ければ「なし」と明記）
+- 規約ドキュメントのテスト基準に該当する実装をした場合は、そのテストコード
 
 ## 次に行うこと
 
